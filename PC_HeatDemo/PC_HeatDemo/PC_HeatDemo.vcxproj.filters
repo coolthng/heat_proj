@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Heat">
+      <UniqueIdentifier>{6b48919c-7738-430d-ac99-afe7bde9f446}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PC_Heat">
+      <UniqueIdentifier>{d01b5778-a7e2-4cab-8d5a-985b90e32dc8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Heat\Src\adc.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\alarm.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\heat.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\huoer.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\key.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\parm.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\pwm.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\StateMachine.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\time.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PC_Heat\Src\main.c">
+      <Filter>PC_Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\modbus.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Heat\Src\port.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
