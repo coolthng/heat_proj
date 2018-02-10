@@ -1106,6 +1106,7 @@ void PrintCurrentState(struct __HEAT_HandleTypeDef *phheat)
 
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 #else
+
 	//extern uint32_t HuoErInput[100];
 	//static uint32_t CapValue = 0;
 	//#if 0
@@ -1144,6 +1145,9 @@ void PrintCurrentState(struct __HEAT_HandleTypeDef *phheat)
 
 	//#endif
 #endif
+
+
+
 	//获得当前状态
 	//static  STATE_TypeDef  l_state_machine;
 	/*uint8_t temp1 = 0;
@@ -1197,6 +1201,8 @@ void PrintCurrentState(struct __HEAT_HandleTypeDef *phheat)
 	////usRegInputBuf[12] = phheat->hSensor.SenGetYouBengFbVal();
 
 }
+
+
 
 
 
