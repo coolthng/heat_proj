@@ -1,0 +1,3 @@
+#点火参数
+StartHeatKeTiTemp = 70;//默认70摄氏度
+HeatKeTiRiseTempSuc = 5;//默认5摄氏度
