@@ -1,4 +1,4 @@
-#include "heat.h"
+﻿#include "heat.h"
 
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 #else

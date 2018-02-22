@@ -1,4 +1,4 @@
-#ifndef __HUOER_H
+﻿#ifndef __HUOER_H
 #define __HUOER_H
 #include "heat.h"
 

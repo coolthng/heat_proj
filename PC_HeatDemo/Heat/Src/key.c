@@ -1,4 +1,4 @@
-#include "key.h"
+﻿#include "key.h"
 static KEY_HandleTypeDef *pshKey;
 void KEY_StateInit(struct __KEY_HandleTypeDef * phkey)
 {

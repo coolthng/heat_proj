@@ -1,4 +1,4 @@
-#ifndef  __PLATE_FORM_CONFIG_
+﻿#ifndef  __PLATE_FORM_CONFIG_
 #define  __PLATE_FORM_CONFIG_
 
 #define DEBUG_TEST_PC  

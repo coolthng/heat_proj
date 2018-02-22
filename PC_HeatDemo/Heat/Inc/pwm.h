@@ -1,4 +1,4 @@
-#ifndef __PWM_H
+﻿#ifndef __PWM_H
 #define __PWM_H
 #include "heat.h"
 void PWM_HuoSaiInit(struct __OUT_HandleTypeDef * phout);

@@ -1,4 +1,4 @@
-#ifndef __MODBUS_H
+﻿#ifndef __MODBUS_H
 #define __MODBUS_H
 
 #include "heat.h"

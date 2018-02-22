@@ -1,4 +1,5 @@
-#include "adc.h"
+﻿#include "adc.h"
+
 
 static SENSOR_HandleTypeDef *phSensor;
 void ADC_Init(struct __SENSOR_HandleTypeDef * phsensor)

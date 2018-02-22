@@ -1,4 +1,4 @@
-#ifndef __ALARM_H
+﻿#ifndef __ALARM_H
 #define __ALARM_H
 #include "heat.h"
 

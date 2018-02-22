@@ -1,4 +1,4 @@
-#ifndef __HEAT_H
+﻿#ifndef __HEAT_H
 #define __HEAT_H
 #include "StateMachine.h"
 #include "PlateFormConfig.h"

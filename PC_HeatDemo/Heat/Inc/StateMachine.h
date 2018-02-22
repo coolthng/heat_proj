@@ -1,4 +1,4 @@
-#ifndef  __STATEMACHINE_
+﻿#ifndef  __STATEMACHINE_
 #define  __STATEMACHINE_
 #include "heat.h"
 
