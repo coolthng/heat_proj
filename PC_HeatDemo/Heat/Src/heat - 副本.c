@@ -3,11 +3,11 @@
 HEAT_StatusTypeDef HEAT_Init(HEAT_HandleTypeDef *phheat)
 {
 	HEAT_HandleTypeDef *p2hheat;
-//²ÎÊý³õÊ¼»¯  ÅäÖÃ²ÎÊý  °æ±¾ºÅ¡¢
+//å‚æ•°åˆå§‹åŒ–  é…ç½®å‚æ•°  ç‰ˆæœ¬å·ã€
 //hheat->hParm.ParmInit = PARM_Init;
 //hheat->hParm.ParmInit(hheat.hParm);
 //hheat->hParm.ParmSet(hheat.hParm);
-//º¯Êý½Ó¿Ú³õÊ¼»¯  »ñÈ¡ÎÂ¶È¡¢µçÑ¹¡¢·´À¡   ·çÉÈ ¿ÇÌå
+//å‡½æ•°æŽ¥å£åˆå§‹åŒ–  èŽ·å–æ¸©åº¦ã€ç”µåŽ‹ã€åé¦ˆ   é£Žæ‰‡ å£³ä½“
 
 	phheat->HW_Version = 100;
 	
@@ -15,7 +15,7 @@ HEAT_StatusTypeDef HEAT_Init(HEAT_HandleTypeDef *phheat)
 
 
 
-	//start ³õÊ¼»¯ÏµÍ³
+	//start åˆå§‹åŒ–ç³»ç»Ÿ
 	//hheat.pStateMachineInit = StateMachineInit;
 	//hheat.pStateMachineInit(&hheat);
 
@@ -45,10 +45,10 @@ HEAT_StatusTypeDef HEAT_Init(HEAT_HandleTypeDef *phheat)
 	//hheat.hHuoer.HuoerInit = HUOER_Init;
 	//hheat.hHuoer.HuoerInit(&hheat.hHuoer);
 
-	//hheat.peMBPoll = eMBPoll;//485Í¨ÐÅ
+	//hheat.peMBPoll = eMBPoll;//485é€šä¿¡
 	//hheat.pPrintCurState = PrintCurrentState;
 	//hheat.hPower.SensorInit=ADC
-	//end  ³õÊ¼»¯ÏµÍ³
+	//end  åˆå§‹åŒ–ç³»ç»Ÿ
 	//hheat->test = 100;
 
 	return HEAT_OK;

@@ -1,8 +1,9 @@
 #ifndef  __STATEMACHINE_
 #define  __STATEMACHINE_
 #include "heat.h"
-//#include "heat.h"
-void STATE_heat();/*加热状态*/
+
+#include "stdint.h"
+void STATE_heat();/*录脫脠脠脳麓脤卢*/
 //void StateIdel(HEAT_HandleTypeDef *phheat);
 
 
@@ -11,6 +12,6 @@ void STATE_heat();/*加热状态*/
 float FengShanAdjust_Pre(float target_pre, float current_pre, int remain_time);
 int HuoSaiAdjust_Pre(int target_pre, int current_pre, int remain_time);
 int YouBengAdjust_Pre(int target_pre, int current_pre, int remain_time);
-
+uint16_t FengShanAdjust_Prm(uint16_t target_prm, uint16_t current_prm, uint16_t remain_time);
 
 #endif

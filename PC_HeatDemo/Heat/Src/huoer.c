@@ -5,7 +5,7 @@ void HUOER_Init(struct __HUOER_HandleTypeDef * phhuoer)
 	phhuoer->HuoerSetTime = HUOER_SetTime;
 	phhuoer->HuoerGetRpm = HUOER_GetRPM;
 }
-//获得霍尔转速
+//禄帽碌脙禄么露没脳陋脣脵
 int HUOER_GetRPM()
 {
 	return 300;

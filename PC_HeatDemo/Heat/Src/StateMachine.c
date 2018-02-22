@@ -28,7 +28,7 @@ void StateMachineInit(struct __HEAT_HandleTypeDef *phheat)
 
 void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 {											
-	//²»Çå¿Õ¸÷Êä³ö×´Ì¬   Ö»ÇĞ¶ÏÊä³ö
+	//ä¸æ¸…ç©ºå„è¾“å‡ºçŠ¶æ€   åªåˆ‡æ–­è¾“å‡º
 
 //	pshHuoSai->OutSetParm(phheat);//(phheat);
 	pshHuoSai->OutStop(pshHuoSai);
@@ -36,39 +36,49 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 	pshFengShan->OutStop(pshFengShan);
 	pshYouBeng->OutStop(pshYouBeng);
 
-	pshSysTime->StateMachineRun_s = 0;//Çå¿ÕÔËĞĞÊ±¼ä¼ÆÊı
+	pshSysTime->StateMachineRun_s = 0;//æ¸…ç©ºè¿è¡Œæ—¶é—´è®¡æ•°
 	phheat->TargetPrm = 0;
 	
 	while (1)//
 	{
-		if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
+		if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
 		{
 			pshSysTime->SysTime.Time_s_up_flag = 0;
-			pshSysTime->StateMachineRun_s++;//ÏµÍ³ÔËĞĞÊ±¼ä¼ÆÊı
+			pshSysTime->StateMachineRun_s++;//ç³»ç»Ÿè¿è¡Œæ—¶é—´è®¡æ•°
 
-			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,¼ÆÊıÒç³ö18Ğ¡Ê±£¬
+			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,è®¡æ•°æº¢å‡º18å°æ—¶ï¼Œ
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
 				
 			}
-			phheat->pPrintCurState(phheat);//´òÓ¡µ±Ç°×´Ì¬
+			phheat->pPrintCurState(phheat);//æ‰“å°å½“å‰çŠ¶æ€
 			phheat->pStateMachineAdjest(phheat);
 		}
-		phheat->peMBPoll();//¸üĞÂÍ¨ĞÅ
+		phheat->peMBPoll();//æ›´æ–°é€šä¿¡
 		
-		if (pshSysTime->StateMachineRun_s > 2)//±ÜÃâ¿ÇÌåÅĞ¶Ï
+		if (pshSysTime->StateMachineRun_s > 2)//é¿å…å£³ä½“åˆ¤æ–­
 		{
 
 		}
-		//start °´¼ü²Ù×÷
+		//start æŒ‰é”®æ“ä½œ
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
 			/*phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_IDEL);
 			phheat->StateMachineNext = STATE_MACHINE_HEAT;
 		break;*/
-			phheat->StateMachine = STATE_MACHINE_DEBUG;
+			//åˆ¤æ–­å£³ä½“æ¸©åº¦ï¼Œå¤§äºæŸä¸ªæ¸©åº¦ï¼Œå¹å‡‰åå†ç‚¹ç«
+			if (phheat->KeTiTemp > phheat->hParm.StartHeatKeTiTemp)
+			{
+				phheat->StateMachine = STATE_MACHINE_WIND;//è¿›å…¥é€šé£çŠ¶æ€
+				phheat->StateMachineNext =STATE_MACHINE_HEAT;
+			}
+			else
+			{
+				phheat->StateMachine = STATE_MACHINE_HEAT;
+			}
+			
 			return;
 			break;
 		case KEY_STATE_STOP:
@@ -83,7 +93,7 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 			return;
 			break;
 		case KEY_STATE_SW_2_HEAT_F_IDEL:
-			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//¿ÇÌåÎÂ¶È¹ı¸ß½øÍ¨·çÄ£Ê½
+			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//å£³ä½“æ¸©åº¦è¿‡é«˜è¿›é€šé£æ¨¡å¼
 			{
 				phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
 				phheat->StateMachine = STATE_MACHINE_WIND;
@@ -101,7 +111,7 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 			break;
 
 		}
-		//end  °´¼ü²Ù×÷
+		//end  æŒ‰é”®æ“ä½œ
 
 	}
 
@@ -111,7 +121,7 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 
 void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat)
 {
-	//start ¿ªÊ¼µ÷½Ú·çÉÈ×ªËÙ
+	//start å¼€å§‹è°ƒèŠ‚é£æ‰‡è½¬é€Ÿ
 	static uint8_t HighPrmFlag=0;
 	if(phheat->TargetPrm>800)
 	{
@@ -166,28 +176,28 @@ void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat)
 	}
 
 
-	//end µ÷½Ú·çÉÈ×ªËÙ
+	//end è°ƒèŠ‚é£æ‰‡è½¬é€Ÿ
 
 }
 void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 {
-	//²»Çå¿Õ¸÷Êä³ö×´Ì¬   Ö»ÇĞ¶ÏÊä³ö
+	//ä¸æ¸…ç©ºå„è¾“å‡ºçŠ¶æ€   åªåˆ‡æ–­è¾“å‡º
 	//	pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
 	//pshHuoSai->OutStop(pshHuoSai);
 	//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, 5, pshSen->SenGetPowerVal());
 	//pshFengShan->OutStart(pshFengShan);
 	//pshYouBeng->OutStop(pshYouBeng);
-	pshSysTime->StateMachineRun_s = 0;//Çå¿ÕÔËĞĞÊ±¼ä¼ÆÊı
+	pshSysTime->StateMachineRun_s = 0;//æ¸…ç©ºè¿è¡Œæ—¶é—´è®¡æ•°
 	phheat->TargetPrm = 1000;
 	while (1)//
 	{
-		if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
+		if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
 		{
 			pshSysTime->SysTime.Time_s_up_flag = 0;
 
-			pshSysTime->StateMachineRun_s++;//ÏµÍ³ÔËĞĞÊ±¼ä¼ÆÊı
+			pshSysTime->StateMachineRun_s++;//ç³»ç»Ÿè¿è¡Œæ—¶é—´è®¡æ•°
 
-			phheat->pPrintCurState(phheat);//´òÓ¡µ±Ç°×´Ì¬
+			phheat->pPrintCurState(phheat);//æ‰“å°å½“å‰çŠ¶æ€
 
 			
 			phheat->pStateMachineAdjest(phheat);
@@ -198,9 +208,9 @@ void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 		//phheat->pStateMachineAdjest(phheat);
 		}	
 		
-		phheat->peMBPoll();//¸üĞÂÍ¨ĞÅ
+		phheat->peMBPoll();//æ›´æ–°é€šä¿¡
 		
-		//start °´¼ü²Ù×÷
+		//start æŒ‰é”®æ“ä½œ
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_STOP:
@@ -211,8 +221,8 @@ void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 			break;
 
 		}
-		//end  °´¼ü²Ù×÷
-		pshAlarm->AlarmCheck(pshAlarm);//¹ÊÕÏ¼ì²é
+		//end  æŒ‰é”®æ“ä½œ
+		pshAlarm->AlarmCheck(pshAlarm);//æ•…éšœæ£€æŸ¥
 
 	}
 
@@ -220,42 +230,42 @@ void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 
 void StateMachineWind(struct __HEAT_HandleTypeDef *phheat)
 {
-	//²»Çå¿Õ¸÷Êä³ö×´Ì¬   Ö»ÇĞ¶ÏÊä³ö
+	//ä¸æ¸…ç©ºå„è¾“å‡ºçŠ¶æ€   åªåˆ‡æ–­è¾“å‡º
 //	pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
 	pshHuoSai->OutStop(pshHuoSai);
 	//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, 5, pshSen->SenGetPowerVal());
 	pshFengShan->OutStart(pshFengShan);
 	pshYouBeng->OutStop(pshYouBeng);
-	pshSysTime->StateMachineRun_s = 0;//Çå¿ÕÔËĞĞÊ±¼ä¼ÆÊı
+	pshSysTime->StateMachineRun_s = 0;//æ¸…ç©ºè¿è¡Œæ—¶é—´è®¡æ•°
 
 	while (1)//
 	{
-		if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
+		if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
 		{
 			
-			pshSysTime->StateMachineRun_s++;//ÏµÍ³ÔËĞĞÊ±¼ä¼ÆÊı
-			//start ×ªËÙ×Ô¶¯µ÷½Ú
+			pshSysTime->StateMachineRun_s++;//ç³»ç»Ÿè¿è¡Œæ—¶é—´è®¡æ•°
+			//start è½¬é€Ÿè‡ªåŠ¨è°ƒèŠ‚
 			if (pshSysTime->StateMachineRun_s<pshParm->WIND_FS_D1.Stop_s)//60s
 			{
 				//f_target_adjust_pre=FengShanAdjust_Pre(pshParm->WIND_FS_D1.Pre, pshFengShan->curPre, pshParm->WIND_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
-			//end ×ªËÙ×Ô¶¯µ÷½Ú
-			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,¼ÆÊıÒç³ö18Ğ¡Ê±£¬
+			//end è½¬é€Ÿè‡ªåŠ¨è°ƒèŠ‚
+			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,è®¡æ•°æº¢å‡º18å°æ—¶ï¼Œ
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//´òÓ¡µ±Ç°×´Ì¬
+			phheat->pPrintCurState(phheat);//æ‰“å°å½“å‰çŠ¶æ€
 		}
-		phheat->peMBPoll();//¸üĞÂÍ¨ĞÅ
+		phheat->peMBPoll();//æ›´æ–°é€šä¿¡
 
-		if (pshSysTime->StateMachineRun_s > 2)//±ÜÃâ¿ÇÌåÅĞ¶Ï
+		if (pshSysTime->StateMachineRun_s > 2)//é¿å…å£³ä½“åˆ¤æ–­
 		{
 
 		}
-		//start °´¼ü²Ù×÷
+		//start æŒ‰é”®æ“ä½œ
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
@@ -266,7 +276,7 @@ void StateMachineWind(struct __HEAT_HandleTypeDef *phheat)
 			phheat->StateMachineNext = STATE_MACHINE_IDEL;
 			break;
 		case KEY_STATE_SW_2_HEAT_F_WIND:
-			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//¿ÇÌåÎÂ¶È¹ı¸ß½øÍ¨·çÄ£Ê½
+			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//å£³ä½“æ¸©åº¦è¿‡é«˜è¿›é€šé£æ¨¡å¼
 			{
 				phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
 				
@@ -282,61 +292,60 @@ void StateMachineWind(struct __HEAT_HandleTypeDef *phheat)
 			break;
 
 		}
-		//end  °´¼ü²Ù×÷
-		pshAlarm->AlarmCheck(pshAlarm);//¹ÊÕÏ¼ì²é
+		//end  æŒ‰é”®æ“ä½œ
+		pshAlarm->AlarmCheck(pshAlarm);//æ•…éšœæ£€æŸ¥
 
 	}
 
 }
 void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 {
-	//²»Çå¿Õ¸÷Êä³ö×´Ì¬   Ö»ÇĞ¶ÏÊä³ö
+	//ä¸æ¸…ç©ºå„è¾“å‡ºçŠ¶æ€   åªåˆ‡æ–­è¾“å‡º
 	//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
 	pshHuoSai->OutStop(pshHuoSai);
 	//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, 5, pshSen->SenGetPowerVal());
 	pshFengShan->OutStart(pshFengShan);
 	pshYouBeng->OutStop(pshYouBeng);
-	pshSysTime->StateMachineRun_s = 0;//Çå¿ÕÔËĞĞÊ±¼ä¼ÆÊı
+	pshSysTime->StateMachineRun_s = 0;//æ¸…ç©ºè¿è¡Œæ—¶é—´è®¡æ•°
 
 	while (1)//
 	{
-		if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
+		if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
 		{
-			pshSysTime->StateMachineRun_s++;//ÏµÍ³ÔËĞĞÊ±¼ä¼ÆÊı
-			//start ·çÉÈ¿ØÖÆ
+			pshSysTime->SysTime.Time_s_up_flag = 0;
+			pshSysTime->StateMachineRun_s++;//ç³»ç»Ÿè¿è¡Œæ—¶é—´è®¡æ•°
+			//start é£æ‰‡æ§åˆ¶
+
 			if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D1.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT_FS_D1.Pre , pshFengShan->curPre, pshParm->HEAT_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetPrm=FengShanAdjust_Prm(pshParm->HEAT_FS_D1.parm, phheat->TargetPrm, pshParm->HEAT_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 			}else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D2.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D2.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT_FS_D2.Pre, pshFengShan->curPre, pshParm->HEAT_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D2.parm, phheat->TargetPrm, pshParm->HEAT_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D3.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D3.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT_FS_D3.Pre, pshFengShan->curPre, pshParm->HEAT_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D3.parm, phheat->TargetPrm, pshParm->HEAT_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
 			}
-			//end ·çÉÈ¿ØÖÆ
-			//start »ğ»¨Èû¿ØÖÆ
+			//end é£æ‰‡æ§åˆ¶
+			//start ç«èŠ±å¡æ§åˆ¶
 			if (pshSysTime->StateMachineRun_s == pshParm->HEAT_HS_EN_Time)
 			{
 				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai,50,pshParm->HS_StartPrmPre, pshSen->SenGetPowerVal());
 			}
 			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT_HS_D1.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT_HS_D1.Stop_s)
 			{
-				i_target_adjust_pre= HuoSaiAdjust_Pre(pshParm->HEAT_HS_D1.Pre,pshHuoSai->curPre, pshParm->HEAT_HS_D1.Stop_s -pshSysTime->StateMachineRun_s);
+				//i_target_adjust_pre= HuoSaiAdjust_Pre(pshParm->HEAT_HS_D1.Pre,pshHuoSai->curPre, pshParm->HEAT_HS_D1.Stop_s -pshSysTime->StateMachineRun_s);
 				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai,50,i_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
 			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT_HS_D2.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT_HS_D2.Stop_s)
 			{
-				i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->HEAT_HS_D2.Pre, pshHuoSai->curPre, pshParm->HEAT_HS_D2.Stop_s - pshSysTime->StateMachineRun_s);
+				//i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->HEAT_HS_D2.Pre, pshHuoSai->curPre, pshParm->HEAT_HS_D2.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
 			
-			//end »ğ»¨Èû¿ØÖÆ
-			//start ÓÍ±Ã¿ØÖÆ
+			//end ç«èŠ±å¡æ§åˆ¶
+			//start æ²¹æ³µæ§åˆ¶
 			if (pshSysTime->StateMachineRun_s == pshParm->HEAT_YB_EN_Time)
 			{
 				switch (pshParm->ModeXkw)
@@ -360,9 +369,9 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			{
 				//pshYouBeng->OutSetParm(phheat);//(pshYouBeng,(int)((pshFengShan->curPre*100)/(pshParm->FS_PreToYB_Hz)),10,240);
 			}
-			//end  ÓÍ±Ã¿ØÖÆ
+			//end  æ²¹æ³µæ§åˆ¶
 
-			//start ÅĞ¶Ïµã»ğ³É¹¦
+			//start åˆ¤æ–­ç‚¹ç«æˆåŠŸ
 			if (pshSysTime->StateMachineRun_s == pshParm->HEAT_KT_StartTime)
 			{
 				phheat->StartKeTiTemp = pshSen->SenGetKeTiVal();
@@ -383,22 +392,23 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 					return;
 				}
 			}
-			//end ÅĞ¶Ïµã»ğ³É¹¦
-			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,¼ÆÊıÒç³ö18Ğ¡Ê±£¬
+			//end åˆ¤æ–­ç‚¹ç«æˆåŠŸ
+			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,è®¡æ•°æº¢å‡º18å°æ—¶ï¼Œ
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//´òÓ¡µ±Ç°×´Ì¬
+			phheat->pPrintCurState(phheat);//æ‰“å°å½“å‰çŠ¶æ€
+			phheat->pStateMachineAdjest(phheat);
 		}
-		phheat->peMBPoll();//¸üĞÂÍ¨ĞÅ
+		phheat->peMBPoll();//æ›´æ–°é€šä¿¡
 
-		if (pshSysTime->StateMachineRun_s > 2)//±ÜÃâ¿ÇÌåÅĞ¶Ï
+		if (pshSysTime->StateMachineRun_s > 2)//é¿å…å£³ä½“åˆ¤æ–­
 		{
 
 		}
-		//start °´¼ü²Ù×÷
+		//start æŒ‰é”®æ“ä½œ
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
@@ -428,8 +438,8 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			break;
 
 		}
-		//end  °´¼ü²Ù×÷
-		pshAlarm->AlarmCheck(pshAlarm);//¹ÊÕÏ¼ì²é
+		//end  æŒ‰é”®æ“ä½œ
+		pshAlarm->AlarmCheck(pshAlarm);//æ•…éšœæ£€æŸ¥
 
 	}
 
@@ -437,41 +447,41 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 
 void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 {
-	//²»Çå¿Õ¸÷Êä³ö×´Ì¬   Ö»ÇĞ¶ÏÊä³ö
+	//ä¸æ¸…ç©ºå„è¾“å‡ºçŠ¶æ€   åªåˆ‡æ–­è¾“å‡º
 	//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
 	pshHuoSai->OutStop(pshHuoSai);
 	//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, 5, pshSen->SenGetPowerVal());
 	pshFengShan->OutStart(pshFengShan);
 	pshYouBeng->OutStop(pshYouBeng);
-	pshSysTime->StateMachineRun_s = 0;//Çå¿ÕÔËĞĞÊ±¼ä¼ÆÊı
+	pshSysTime->StateMachineRun_s = 0;//æ¸…ç©ºè¿è¡Œæ—¶é—´è®¡æ•°
 	
 	phheat->HEAT2_KT_START_HEAT_Flag = 0;
 
 	while (1)//
 	{
-		if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
+		if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
 		{
-			pshSysTime->StateMachineRun_s++;//ÏµÍ³ÔËĞĞÊ±¼ä¼ÆÊı
-											//start ·çÉÈ¿ØÖÆ
+			pshSysTime->StateMachineRun_s++;//ç³»ç»Ÿè¿è¡Œæ—¶é—´è®¡æ•°
+											//start é£æ‰‡æ§åˆ¶
 			if (pshSysTime->StateMachineRun_s>pshParm->HEAT2_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT2_FS_D1.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D1.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
+				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D1.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT2_FS_D2.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT2_FS_D2.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D2.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
+				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D2.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT2_FS_D3.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT2_FS_D3.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D3.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
+				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D3.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
-			//end ·çÉÈ¿ØÖÆ
+			//end é£æ‰‡æ§åˆ¶
 			if (phheat->HEAT2_KT_START_HEAT_Flag)
 			{
-				//start »ğ»¨Èû¿ØÖÆ
+				//start ç«èŠ±å¡æ§åˆ¶
 
 				if (pshSysTime->StateMachineRun_s == pshParm->HEAT2_HS_EN_OFST_Time)
 				{
@@ -479,13 +489,13 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 				}
 				else if (pshSysTime->StateMachineRun_s > (pshParm->HEAT2_HS_OFST_D1.Start_s+ phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_HS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
 				{
-					i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->HEAT2_HS_OFST_D1.Pre, pshHuoSai->curPre, pshParm->HEAT2_HS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time- pshSysTime->StateMachineRun_s);
+					//i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->HEAT2_HS_OFST_D1.Pre, pshHuoSai->curPre, pshParm->HEAT2_HS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time- pshSysTime->StateMachineRun_s);
 					//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre, pshSen->SenGetPowerVal());
 				}
 				
 
-				//end »ğ»¨Èû¿ØÖÆ
-				//start ÓÍ±Ã¿ØÖÆ
+				//end ç«èŠ±å¡æ§åˆ¶
+				//start æ²¹æ³µæ§åˆ¶
 				if (pshSysTime->StateMachineRun_s == (pshParm->HEAT2_YB_EN_OFST_Time +phheat->HEAT2_KT_START_HEAT_Time))
 				{
 					switch (pshParm->ModeXkw)
@@ -509,9 +519,9 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 				{
 					//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, (int)((pshFengShan->curPre * 100) / (pshParm->FS_PreToYB_Hz)), 10, 240);
 				}
-				//end  ÓÍ±Ã¿ØÖÆ
+				//end  æ²¹æ³µæ§åˆ¶
 			}
-			//start ÅĞ¶Ïµã»ğ³É¹¦
+			//start åˆ¤æ–­ç‚¹ç«æˆåŠŸ
 			if ((!(phheat->HEAT2_KT_START_HEAT_Flag)) && pshSen->SenGetKeTiVal() < pshParm->HEAT2_KT_DROPDOWN_START_HEAT&&pshSysTime->StateMachineRun_s > pshParm->HEAT2_START_HEAT_Time)
 			{
 				phheat->StartKeTiTemp= pshSen->SenGetKeTiVal();
@@ -556,22 +566,22 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 					return;
 				}
 			}
-			//end ÅĞ¶Ïµã»ğ³É¹¦
-			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,¼ÆÊıÒç³ö18Ğ¡Ê±£¬
+			//end åˆ¤æ–­ç‚¹ç«æˆåŠŸ
+			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,è®¡æ•°æº¢å‡º18å°æ—¶ï¼Œ
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//´òÓ¡µ±Ç°×´Ì¬
+			phheat->pPrintCurState(phheat);//æ‰“å°å½“å‰çŠ¶æ€
 		}
-		phheat->peMBPoll();//¸üĞÂÍ¨ĞÅ
+		phheat->peMBPoll();//æ›´æ–°é€šä¿¡
 
-		if (pshSysTime->StateMachineRun_s > 2)//±ÜÃâ¿ÇÌåÅĞ¶Ï
+		if (pshSysTime->StateMachineRun_s > 2)//é¿å…å£³ä½“åˆ¤æ–­
 		{
 
 		}
-		//start °´¼ü²Ù×÷
+		//start æŒ‰é”®æ“ä½œ
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
@@ -585,8 +595,8 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 			break;
 
 		}
-		//end  °´¼ü²Ù×÷
-		pshAlarm->AlarmCheck(pshAlarm);//¹ÊÕÏ¼ì²é
+		//end  æŒ‰é”®æ“ä½œ
+		pshAlarm->AlarmCheck(pshAlarm);//æ•…éšœæ£€æŸ¥
 
 	}
 
@@ -594,60 +604,60 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 
 void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 {
-#define  NORMAL_STATE_CHUKOU_TEMP_DELAY_30S  6//30Ãë*6´Î=3min±È½Ï£¬×´Ì¬Ê±£¬¼ì²â³ö¿ÚÎÂ¶ÈÑÓÊ±£¬ÓÃÓÚÅĞ¶ÏÃğ»ğÓÃ  
+#define  NORMAL_STATE_CHUKOU_TEMP_DELAY_30S  6//30ç§’*6æ¬¡=3minæ¯”è¾ƒï¼ŒçŠ¶æ€æ—¶ï¼Œæ£€æµ‹å‡ºå£æ¸©åº¦å»¶æ—¶ï¼Œç”¨äºåˆ¤æ–­ç­ç«ç”¨  
 
-	//²»Çå¿Õ¸÷Êä³ö×´Ì¬   Ö»ÇĞ¶ÏÊä³ö
-	int16_t  l_ChuKou_Temp_Old[NORMAL_STATE_CHUKOU_TEMP_DELAY_30S];//¶¨Òå¾²Ì¬Êı×é£¬ÓÃÓÚÅĞ¶ÏÊÇ·ñÃğ»ğ
-	int16_t  l_KeTi_Temp_Old[NORMAL_STATE_CHUKOU_TEMP_DELAY_30S];//¶¨Òå¾²Ì¬Êı×é£¬Ãğ»ğÅĞ¶ÏÔö¼Ó¿ÇÌåÎÂ¶È
-	int16_t  l_Count_30s = 0;//¼ÇÂ¼½øÈëµ±Ç°×´Ì¬µÄÊ±¼ä£¬±£Ö¤30s¼ÇÂ¼Ò»´ÎÊı¾İ
+	//ä¸æ¸…ç©ºå„è¾“å‡ºçŠ¶æ€   åªåˆ‡æ–­è¾“å‡º
+	int16_t  l_ChuKou_Temp_Old[NORMAL_STATE_CHUKOU_TEMP_DELAY_30S];//å®šä¹‰é™æ€æ•°ç»„ï¼Œç”¨äºåˆ¤æ–­æ˜¯å¦ç­ç«
+	int16_t  l_KeTi_Temp_Old[NORMAL_STATE_CHUKOU_TEMP_DELAY_30S];//å®šä¹‰é™æ€æ•°ç»„ï¼Œç­ç«åˆ¤æ–­å¢åŠ å£³ä½“æ¸©åº¦
+	int16_t  l_Count_30s = 0;//è®°å½•è¿›å…¥å½“å‰çŠ¶æ€çš„æ—¶é—´ï¼Œä¿è¯30sè®°å½•ä¸€æ¬¡æ•°æ®
 
-	for (uint8_t j = 0; j<NORMAL_STATE_CHUKOU_TEMP_DELAY_30S; j++)//³õÊ¼»¯³ö¿ÚÎÂ¶ÈÊı×é
+	for (uint8_t j = 0; j<NORMAL_STATE_CHUKOU_TEMP_DELAY_30S; j++)//åˆå§‹åŒ–å‡ºå£æ¸©åº¦æ•°ç»„
 	{
 		l_ChuKou_Temp_Old[j] = 0;
 		l_KeTi_Temp_Old[j] = 0;
 	}
-	pshSysTime->StateMachineRun_s = 0;//Çå¿ÕÔËĞĞÊ±¼ä¼ÆÊı
-	phheat->StateRunLevel = STATE_RUN_LEVEL_3;//Ä¬ÈÏÉèÖÃ3µµ
-	int16_t l_level_count_s = 0;//Í¨ÓÃÄ£Ê½¼ÆÊıÊ±¼ä
-	int16_t l_jinkou_over_dianweiqi_continue_count_s = 0;//½ø¿ÚÁ¬Ğø´óÓÚµçÎ»Æ÷ÎÂ¶È¼ÆÊı
-	int16_t l_dianweiqi_over_jinkou_continue_count_s = 0;//µçÎ»Æ÷Á¬Ğø´óÓÚ½ø¿ÚÎÂ¶È¼ÆÊı
-	uint8_t l_level_switch_lock_flag = 0;//×´Ì¬ÇĞ»»Ëø±êÖ¾Î»£¬±ÜÃâÔÚµ÷µµÆÚ¼ä£¬×ªËÙ²»ÎÈ
+	pshSysTime->StateMachineRun_s = 0;//æ¸…ç©ºè¿è¡Œæ—¶é—´è®¡æ•°
+	phheat->StateRunLevel = STATE_RUN_LEVEL_3;//é»˜è®¤è®¾ç½®3æ¡£
+	int16_t l_level_count_s = 0;//é€šç”¨æ¨¡å¼è®¡æ•°æ—¶é—´
+	int16_t l_jinkou_over_dianweiqi_continue_count_s = 0;//è¿›å£è¿ç»­å¤§äºç”µä½å™¨æ¸©åº¦è®¡æ•°
+	int16_t l_dianweiqi_over_jinkou_continue_count_s = 0;//ç”µä½å™¨è¿ç»­å¤§äºè¿›å£æ¸©åº¦è®¡æ•°
+	uint8_t l_level_switch_lock_flag = 0;//çŠ¶æ€åˆ‡æ¢é”æ ‡å¿—ä½ï¼Œé¿å…åœ¨è°ƒæ¡£æœŸé—´ï¼Œè½¬é€Ÿä¸ç¨³
 	int16_t  l_adjust_count_s = 0;
 
 	while (1)//
 	{
-		if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
+		if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
 		{
-			pshSysTime->StateMachineRun_s++;//ÏµÍ³ÔËĞĞÊ±¼ä¼ÆÊı
-			//start ·çÉÈ¿ØÖÆ
+			pshSysTime->StateMachineRun_s++;//ç³»ç»Ÿè¿è¡Œæ—¶é—´è®¡æ•°
+			//start é£æ‰‡æ§åˆ¶
 			if (pshSysTime->StateMachineRun_s>pshParm->NORMAL_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->NORMAL_FS_D1.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->NORMAL_FS_D1.Pre, pshFengShan->curPre, pshParm->NORMAL_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
+				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->NORMAL_FS_D1.Pre, pshFengShan->curPre, pshParm->NORMAL_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->NORMAL_FS_D2.Start_s &&pshSysTime->StateMachineRun_s<pshParm->NORMAL_FS_D2.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->NORMAL_FS_D2.Pre, pshFengShan->curPre, pshParm->NORMAL_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
+				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->NORMAL_FS_D2.Pre, pshFengShan->curPre, pshParm->NORMAL_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
 			
-			//end ·çÉÈ¿ØÖÆ
-			//start »ğ»¨Èû¿ØÖÆ
+			//end é£æ‰‡æ§åˆ¶
+			//start ç«èŠ±å¡æ§åˆ¶
 			if (pshSysTime->StateMachineRun_s == pshParm->NORMAL_HS_DIS_Time)
 			{
 				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai,15000,0,pshSen->SenGetPowerVal());
 				pshHuoSai->OutStop(pshHuoSai);
 			}
 		
-			//end »ğ»¨Èû¿ØÖÆ
-			//start ÓÍ±Ã¿ØÖÆ
+			//end ç«èŠ±å¡æ§åˆ¶
+			//start æ²¹æ³µæ§åˆ¶
 			
 			if (pshSysTime->StateMachineRun_s > pshParm->HEAT_YB_ADJ_Time)
 			{
 				//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, (int)((pshFengShan->curPre * 100) / (pshParm->FS_PreToYB_Hz)), 10, 240);
 			}
-			//end  ÓÍ±Ã¿ØÖÆ
-			//start ×Ô¶¯µ÷µµ¿ØÖÆ
+			//end  æ²¹æ³µæ§åˆ¶
+			//start è‡ªåŠ¨è°ƒæ¡£æ§åˆ¶
 			if (pshSysTime->StateMachineRun_s > pshParm->NORMAL_START_SWLEVEL_Time)
 			{
 				l_level_count_s++;
@@ -656,23 +666,23 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 					switch (phheat->StateRunLevel)
 					{
 					case STATE_RUN_LEVEL_1:
-						//start ½µµµÅĞ¶Ï
-						if (pshSen->SenGetJinKouVal()>( pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare+ pshSen->SenGetStateRunVal()))//´óÓÚ3¶È¿ªÊ¼µ÷½Ú
+						//start é™æ¡£åˆ¤æ–­
+						if (pshSen->SenGetJinKouVal()>( pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare+ pshSen->SenGetStateRunVal()))//å¤§äº3åº¦å¼€å§‹è°ƒèŠ‚
 						{
 							l_jinkou_over_dianweiqi_continue_count_s++;
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
 #if(DEBUG_MODE==1)
 							sprintf(StringPrint, "O level1_dropdown_time:%d", l_jinkou_over_dianweiqi_continue_count_s);
 #endif
-							if (l_jinkou_over_dianweiqi_continue_count_s>pshParm->NORMAL_STATE_SWITCH_LOW_LEVEL_DELAY_Second)//Ê±¼äÁ¬Ğø³¬¹ı£¬¿ªÊ¼µ÷µµ
+							if (l_jinkou_over_dianweiqi_continue_count_s>pshParm->NORMAL_STATE_SWITCH_LOW_LEVEL_DELAY_Second)//æ—¶é—´è¿ç»­è¶…è¿‡ï¼Œå¼€å§‹è°ƒæ¡£
 							{
-								if (!l_level_switch_lock_flag)//Ê×ÏÈÈ·ÈÏµ±Ç°µµÊıµ÷½Ú¹ı³ÌÃ»ÓĞ±»Ëø×¡
+								if (!l_level_switch_lock_flag)//é¦–å…ˆç¡®è®¤å½“å‰æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹æ²¡æœ‰è¢«é”ä½
 								{
 									printf( "O Current Level is lowst cant adjust run_time:%d\n", l_level_count_s);
 									/*
 									l_adjust_count_s=0;
-									l_level_switch_lock_flag=1;//Ê×ÏÈËø×¡µµÊıµ÷½Ú¹ı³Ì
-									l_next_level_flag=1;//½µµµµ÷½Ú£¬ÏÂÒ»µµlevel1.
+									l_level_switch_lock_flag=1;//é¦–å…ˆé”ä½æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹
+									l_next_level_flag=1;//é™æ¡£è°ƒèŠ‚ï¼Œä¸‹ä¸€æ¡£level1.
 									*/
 								}
 							}
@@ -680,9 +690,9 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 						else {
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
 						}
-						//end  ½µµµÅĞ¶Ï
-						//start ÉıµµÅĞ¶Ï
-						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare  + pshSen->SenGetJinKouVal()))//ÉıµµÌõ¼şÅĞ¶Ï
+						//end  é™æ¡£åˆ¤æ–­
+						//start å‡æ¡£åˆ¤æ–­
+						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare  + pshSen->SenGetJinKouVal()))//å‡æ¡£æ¡ä»¶åˆ¤æ–­
 						{
 							l_dianweiqi_over_jinkou_continue_count_s++;
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
@@ -691,47 +701,47 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 #endif
 							if (l_dianweiqi_over_jinkou_continue_count_s>pshParm->NORMAL_STATE_SWITCH_HIGH_LEVEL_DELAY_Second)
 							{
-								if (!l_level_switch_lock_flag)//Ê×ÏÈÈ·ÈÏµ±Ç°µµÊıµ÷½Ú¹ı³ÌÃ»ÓĞ±»Ëø×¡
+								if (!l_level_switch_lock_flag)//é¦–å…ˆç¡®è®¤å½“å‰æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹æ²¡æœ‰è¢«é”ä½
 								{
 									l_adjust_count_s = 0;
-									l_level_switch_lock_flag = 1;//Ê×ÏÈËø×¡µµÊıµ÷½Ú¹ı³Ì
-									phheat->StateRunLevel = STATE_RUN_LEVEL_2;//l_next_level_flag = 3;//½µµµµ÷½Ú£¬ÏÂÒ»µµlevel2.
+									l_level_switch_lock_flag = 1;//é¦–å…ˆé”ä½æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹
+									phheat->StateRunLevel = STATE_RUN_LEVEL_2;//l_next_level_flag = 3;//é™æ¡£è°ƒèŠ‚ï¼Œä¸‹ä¸€æ¡£level2.
 								}
 							}
 						}
 						else {
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
 						}
-						//end ÉıµµÅĞ¶Ï
+						//end å‡æ¡£åˆ¤æ–­
 						break;
 					case STATE_RUN_LEVEL_2:
-						//start ½µµµÅĞ¶Ï
-						if (pshSen->SenGetJinKouVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetStateRunVal()))//´óÓÚ3¶È¿ªÊ¼µ÷½Ú
+						//start é™æ¡£åˆ¤æ–­
+						if (pshSen->SenGetJinKouVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetStateRunVal()))//å¤§äº3åº¦å¼€å§‹è°ƒèŠ‚
 						{
 							l_jinkou_over_dianweiqi_continue_count_s++;
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
 #if(DEBUG_MODE==1)
 							sprintf(StringPrint, "O level1_dropdown_time:%d", l_jinkou_over_dianweiqi_continue_count_s);
 #endif
-							if (l_jinkou_over_dianweiqi_continue_count_s>pshParm->NORMAL_STATE_SWITCH_LOW_LEVEL_DELAY_Second)//Ê±¼äÁ¬Ğø³¬¹ı£¬¿ªÊ¼µ÷µµ
+							if (l_jinkou_over_dianweiqi_continue_count_s>pshParm->NORMAL_STATE_SWITCH_LOW_LEVEL_DELAY_Second)//æ—¶é—´è¿ç»­è¶…è¿‡ï¼Œå¼€å§‹è°ƒæ¡£
 							{
-								if (!l_level_switch_lock_flag)//Ê×ÏÈÈ·ÈÏµ±Ç°µµÊıµ÷½Ú¹ı³ÌÃ»ÓĞ±»Ëø×¡
+								if (!l_level_switch_lock_flag)//é¦–å…ˆç¡®è®¤å½“å‰æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹æ²¡æœ‰è¢«é”ä½
 								{
 									printf("O Current Level is lowst cant adjust run_time:%d\n", l_level_count_s);
 									
 									l_adjust_count_s=0;
-									l_level_switch_lock_flag=1;//Ê×ÏÈËø×¡µµÊıµ÷½Ú¹ı³Ì
-									//l_next_level_flag=1;//½µµµµ÷½Ú£¬ÏÂÒ»µµlevel1.
-									phheat->StateRunLevel = STATE_RUN_LEVEL_1;//l_next_level_flag = 3;//½µµµµ÷½Ú£¬ÏÂÒ»µµlevel2.
+									l_level_switch_lock_flag=1;//é¦–å…ˆé”ä½æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹
+									//l_next_level_flag=1;//é™æ¡£è°ƒèŠ‚ï¼Œä¸‹ä¸€æ¡£level1.
+									phheat->StateRunLevel = STATE_RUN_LEVEL_1;//l_next_level_flag = 3;//é™æ¡£è°ƒèŠ‚ï¼Œä¸‹ä¸€æ¡£level2.
 								}
 							}
 						}
 						else {
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
 						}
-						//end  ½µµµÅĞ¶Ï
-						//start ÉıµµÅĞ¶Ï
-						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetJinKouVal()))//ÉıµµÌõ¼şÅĞ¶Ï
+						//end  é™æ¡£åˆ¤æ–­
+						//start å‡æ¡£åˆ¤æ–­
+						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetJinKouVal()))//å‡æ¡£æ¡ä»¶åˆ¤æ–­
 						{
 							l_dianweiqi_over_jinkou_continue_count_s++;
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
@@ -740,47 +750,47 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 #endif
 							if (l_dianweiqi_over_jinkou_continue_count_s>pshParm->NORMAL_STATE_SWITCH_HIGH_LEVEL_DELAY_Second)
 							{
-								if (!l_level_switch_lock_flag)//Ê×ÏÈÈ·ÈÏµ±Ç°µµÊıµ÷½Ú¹ı³ÌÃ»ÓĞ±»Ëø×¡
+								if (!l_level_switch_lock_flag)//é¦–å…ˆç¡®è®¤å½“å‰æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹æ²¡æœ‰è¢«é”ä½
 								{
 									l_adjust_count_s = 0;
-									l_level_switch_lock_flag = 1;//Ê×ÏÈËø×¡µµÊıµ÷½Ú¹ı³Ì
-									phheat->StateRunLevel = STATE_RUN_LEVEL_3;//l_next_level_flag = 3;//½µµµµ÷½Ú£¬ÏÂÒ»µµlevel2.
+									l_level_switch_lock_flag = 1;//é¦–å…ˆé”ä½æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹
+									phheat->StateRunLevel = STATE_RUN_LEVEL_3;//l_next_level_flag = 3;//é™æ¡£è°ƒèŠ‚ï¼Œä¸‹ä¸€æ¡£level2.
 								}
 							}
 						}
 						else {
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
 						}
-						//end ÉıµµÅĞ¶Ï
+						//end å‡æ¡£åˆ¤æ–­
 						break;
 					case STATE_RUN_LEVEL_3:
-						//start ½µµµÅĞ¶Ï
-						if (pshSen->SenGetJinKouVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetStateRunVal()))//´óÓÚ3¶È¿ªÊ¼µ÷½Ú
+						//start é™æ¡£åˆ¤æ–­
+						if (pshSen->SenGetJinKouVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetStateRunVal()))//å¤§äº3åº¦å¼€å§‹è°ƒèŠ‚
 						{
 							l_jinkou_over_dianweiqi_continue_count_s++;
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
 #if(DEBUG_MODE==1)
 							sprintf(StringPrint, "O level1_dropdown_time:%d", l_jinkou_over_dianweiqi_continue_count_s);
 #endif
-							if (l_jinkou_over_dianweiqi_continue_count_s>pshParm->NORMAL_STATE_SWITCH_LOW_LEVEL_DELAY_Second)//Ê±¼äÁ¬Ğø³¬¹ı£¬¿ªÊ¼µ÷µµ
+							if (l_jinkou_over_dianweiqi_continue_count_s>pshParm->NORMAL_STATE_SWITCH_LOW_LEVEL_DELAY_Second)//æ—¶é—´è¿ç»­è¶…è¿‡ï¼Œå¼€å§‹è°ƒæ¡£
 							{
-								if (!l_level_switch_lock_flag)//Ê×ÏÈÈ·ÈÏµ±Ç°µµÊıµ÷½Ú¹ı³ÌÃ»ÓĞ±»Ëø×¡
+								if (!l_level_switch_lock_flag)//é¦–å…ˆç¡®è®¤å½“å‰æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹æ²¡æœ‰è¢«é”ä½
 								{
 									printf("O Current Level is lowst cant adjust run_time:%d\n", l_level_count_s);
 									
 									l_adjust_count_s=0;
-									l_level_switch_lock_flag=1;//Ê×ÏÈËø×¡µµÊıµ÷½Ú¹ı³Ì
-									//l_next_level_flag=1;//½µµµµ÷½Ú£¬ÏÂÒ»µµlevel1.
-									phheat->StateRunLevel = STATE_RUN_LEVEL_2;//l_next_level_flag = 3;//½µµµµ÷½Ú£¬ÏÂÒ»µµlevel2.
+									l_level_switch_lock_flag=1;//é¦–å…ˆé”ä½æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹
+									//l_next_level_flag=1;//é™æ¡£è°ƒèŠ‚ï¼Œä¸‹ä¸€æ¡£level1.
+									phheat->StateRunLevel = STATE_RUN_LEVEL_2;//l_next_level_flag = 3;//é™æ¡£è°ƒèŠ‚ï¼Œä¸‹ä¸€æ¡£level2.
 								}
 							}
 						}
 						else {
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
 						}
-						//end  ½µµµÅĞ¶Ï
-						//start ÉıµµÅĞ¶Ï
-						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetJinKouVal()))//ÉıµµÌõ¼şÅĞ¶Ï
+						//end  é™æ¡£åˆ¤æ–­
+						//start å‡æ¡£åˆ¤æ–­
+						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetJinKouVal()))//å‡æ¡£æ¡ä»¶åˆ¤æ–­
 						{
 							l_dianweiqi_over_jinkou_continue_count_s++;
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
@@ -789,27 +799,27 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 #endif
 							if (l_dianweiqi_over_jinkou_continue_count_s>pshParm->NORMAL_STATE_SWITCH_HIGH_LEVEL_DELAY_Second)
 							{
-								if (!l_level_switch_lock_flag)//Ê×ÏÈÈ·ÈÏµ±Ç°µµÊıµ÷½Ú¹ı³ÌÃ»ÓĞ±»Ëø×¡
+								if (!l_level_switch_lock_flag)//é¦–å…ˆç¡®è®¤å½“å‰æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹æ²¡æœ‰è¢«é”ä½
 								{
 									//l_adjust_count_s = 0;
-									//l_level_switch_lock_flag = 1;//Ê×ÏÈËø×¡µµÊıµ÷½Ú¹ı³Ì
-									//phheat->StateRunLevel = STATE_RUN_LEVEL_2;//l_next_level_flag = 3;//½µµµµ÷½Ú£¬ÏÂÒ»µµlevel2.
+									//l_level_switch_lock_flag = 1;//é¦–å…ˆé”ä½æ¡£æ•°è°ƒèŠ‚è¿‡ç¨‹
+									//phheat->StateRunLevel = STATE_RUN_LEVEL_2;//l_next_level_flag = 3;//é™æ¡£è°ƒèŠ‚ï¼Œä¸‹ä¸€æ¡£level2.
 								}
 							}
 						}
 						else {
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
 						}
-						//end ÉıµµÅĞ¶Ï
+						//end å‡æ¡£åˆ¤æ–­
 						break;
 					default:
 						break;
 					}
 				}
 				
-				//start Ö´ĞĞµ÷µµ
-				//start µ÷µµ
-				if (l_level_switch_lock_flag)//ÒÑËø×¡µ÷µµ¹ı³Ì
+				//start æ‰§è¡Œè°ƒæ¡£
+				//start è°ƒæ¡£
+				if (l_level_switch_lock_flag)//å·²é”ä½è°ƒæ¡£è¿‡ç¨‹
 				{
 					l_adjust_count_s++;
 #if(DEBUG_MODE==1)
@@ -817,7 +827,7 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 #endif
 					if (l_adjust_count_s>pshParm->NORMAL_STATE_SWITCH_LEVEL_Second)
 					{
-						l_level_switch_lock_flag = 0;//½âËø
+						l_level_switch_lock_flag = 0;//è§£é”
 						l_level_count_s = 0;
 						//l_level_flag = l_next_level_flag;
 						//l_next_level_flag == 0;
@@ -853,54 +863,54 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 					
 					
 				}
-				//end  µ÷µµ
-				//end Ö´ĞĞµ÷µµ
+				//end  è°ƒæ¡£
+				//end æ‰§è¡Œè°ƒæ¡£
 
 			}
-			//end  ×Ô¶¯µ÷µµ¿ØÖÆ
+			//end  è‡ªåŠ¨è°ƒæ¡£æ§åˆ¶
 			
-			//start Ãğ»ğÅĞ¶Ï
+			//start ç­ç«åˆ¤æ–­
 		
-			if ((pshSysTime->StateMachineRun_s == 0) || (pshSysTime->StateMachineRun_s == 30))//Ã¿30sÖ´ĞĞ1´Î
+			if ((pshSysTime->StateMachineRun_s == 0) || (pshSysTime->StateMachineRun_s == 30))//æ¯30sæ‰§è¡Œ1æ¬¡
 			{
 				l_KeTi_Temp_Old[l_Count_30s] = pshSen->SenGetKeTiVal();// s_KeTiTemp;
-				l_ChuKou_Temp_Old[l_Count_30s++] = pshSen->SenGetChuKouVal();//s_ChuKouTemp;//½«³ö¿Ú±äÁ¿´æ´¢µ½Êı×éÖĞ
+				l_ChuKou_Temp_Old[l_Count_30s++] = pshSen->SenGetChuKouVal();//s_ChuKouTemp;//å°†å‡ºå£å˜é‡å­˜å‚¨åˆ°æ•°ç»„ä¸­
 				if (l_Count_30s == NORMAL_STATE_CHUKOU_TEMP_DELAY_30S)
 				{
 					l_Count_30s = 0;
 				}
 			}
-			if (pshSysTime->StateMachineRun_s >pshParm->NORMAL_STATE_HEAT_OUT_JUDGE_Time && pshSen->SenGetKeTiVal() <pshParm-> NORMAL_STATE_HEAT_OUT_JUDGE_KeTiTemp)//Ê±¼ä>5min£¬¿ÇÌåĞ¡ÓÚ40¶È£¬ÅĞ¶¨ÎªÃğ»ğ
+			if (pshSysTime->StateMachineRun_s >pshParm->NORMAL_STATE_HEAT_OUT_JUDGE_Time && pshSen->SenGetKeTiVal() <pshParm-> NORMAL_STATE_HEAT_OUT_JUDGE_KeTiTemp)//æ—¶é—´>5minï¼Œå£³ä½“å°äº40åº¦ï¼Œåˆ¤å®šä¸ºç­ç«
 			{
-				phheat->StateMachine = STATE_MACHINE_HEAT2;//ÇĞ»»µ½¶ş´Îµã»ğÄ£Ê½
+				phheat->StateMachine = STATE_MACHINE_HEAT2;//åˆ‡æ¢åˆ°äºŒæ¬¡ç‚¹ç«æ¨¡å¼
 				return;
 			}
 			static char i;
-			for (i = 0; i<NORMAL_STATE_CHUKOU_TEMP_DELAY_30S; i++)//ÊµÊ±±È½Ïµ±Ç°
+			for (i = 0; i<NORMAL_STATE_CHUKOU_TEMP_DELAY_30S; i++)//å®æ—¶æ¯”è¾ƒå½“å‰
 			{
 			
 				if (l_ChuKou_Temp_Old[i]>(pshSen->SenGetChuKouVal() +pshParm->NORMAL_STATE_CHUKOU_DROPDOWN_Temp) && l_KeTi_Temp_Old[i]>(pshSen->SenGetKeTiVal() +pshParm->NORMAL_STATE_KETI_DROPDOWN_Temp))
 				{
-					phheat->StateMachine = STATE_MACHINE_HEAT2;//ÇĞ»»µ½¶ş´Îµã»ğÄ£Ê½
+					phheat->StateMachine = STATE_MACHINE_HEAT2;//åˆ‡æ¢åˆ°äºŒæ¬¡ç‚¹ç«æ¨¡å¼
 					return;
 				}
 			}
-			//end ÅĞ¶¨Ãğ»ğ
-			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,¼ÆÊıÒç³ö18Ğ¡Ê±£¬
+			//end åˆ¤å®šç­ç«
+			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,è®¡æ•°æº¢å‡º18å°æ—¶ï¼Œ
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//´òÓ¡µ±Ç°×´Ì¬
-		}//end  if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
-		phheat->peMBPoll();//¸üĞÂÍ¨ĞÅ
+			phheat->pPrintCurState(phheat);//æ‰“å°å½“å‰çŠ¶æ€
+		}//end  if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
+		phheat->peMBPoll();//æ›´æ–°é€šä¿¡
 
-		if (pshSysTime->StateMachineRun_s > 2)//±ÜÃâ¿ÇÌåÅĞ¶Ï
+		if (pshSysTime->StateMachineRun_s > 2)//é¿å…å£³ä½“åˆ¤æ–­
 		{
 
 		}
-		//start °´¼ü²Ù×÷
+		//start æŒ‰é”®æ“ä½œ
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
@@ -915,8 +925,8 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 			break;
 
 		}
-		//end  °´¼ü²Ù×÷
-		pshAlarm->AlarmCheck(pshAlarm);//¹ÊÕÏ¼ì²é
+		//end  æŒ‰é”®æ“ä½œ
+		pshAlarm->AlarmCheck(pshAlarm);//æ•…éšœæ£€æŸ¥
 
 	}
 
@@ -925,35 +935,35 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 
 void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 {
-	//²»Çå¿Õ¸÷Êä³ö×´Ì¬   Ö»ÇĞ¶ÏÊä³ö
+	//ä¸æ¸…ç©ºå„è¾“å‡ºçŠ¶æ€   åªåˆ‡æ–­è¾“å‡º
 	//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
 	pshHuoSai->OutStop(pshHuoSai);
 	//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, 5, pshSen->SenGetPowerVal());
 	pshFengShan->OutStart(pshFengShan);
 	pshYouBeng->OutStop(pshYouBeng);
-	pshSysTime->StateMachineRun_s = 0;//Çå¿ÕÔËĞĞÊ±¼ä¼ÆÊı
+	pshSysTime->StateMachineRun_s = 0;//æ¸…ç©ºè¿è¡Œæ—¶é—´è®¡æ•°
 
 	while (1)//
 	{
-		if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
+		if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
 		{
-			pshSysTime->StateMachineRun_s++;//ÏµÍ³ÔËĞĞÊ±¼ä¼ÆÊı
-											//start ·çÉÈ¿ØÖÆ
+			pshSysTime->StateMachineRun_s++;//ç³»ç»Ÿè¿è¡Œæ—¶é—´è®¡æ•°
+											//start é£æ‰‡æ§åˆ¶
 			if (pshSysTime->StateMachineRun_s>pshParm->STOP_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->STOP_FS_D1.Stop_s)//60s
 			{
-				f_target_adjust_pre = FengShanAdjust_Pre(pshParm->STOP_FS_D1.Pre, pshFengShan->curPre, pshParm->STOP_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
+				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->STOP_FS_D1.Pre, pshFengShan->curPre, pshParm->STOP_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
 			
-			//end ·çÉÈ¿ØÖÆ
-			//start »ğ»¨Èû¿ØÖÆ
+			//end é£æ‰‡æ§åˆ¶
+			//start ç«èŠ±å¡æ§åˆ¶
 			if (pshSysTime->StateMachineRun_s == pshParm->STOP_HS_D1.Start_s)
 			{
 				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, pshParm->HS_StartPrmPre, pshSen->SenGetPowerVal());
 			}
 			else if (pshSysTime->StateMachineRun_s >pshParm->STOP_HS_D1.Start_s && pshSysTime->StateMachineRun_s <pshParm->STOP_HS_D1.Stop_s)
 			{
-				i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->STOP_HS_D1.Pre, pshHuoSai->curPre, pshParm->STOP_HS_D1.Stop_s - pshSysTime->StateMachineRun_s);
+				//i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->STOP_HS_D1.Pre, pshHuoSai->curPre, pshParm->STOP_HS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
 			if (pshParm->STOP_HS_DIS_Time == pshSysTime->StateMachineRun_s)
@@ -961,9 +971,9 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre,240);
 				pshHuoSai->OutStop(pshHuoSai);
 			}
-			//end »ğ»¨Èû¿ØÖÆ
+			//end ç«èŠ±å¡æ§åˆ¶
 
-			//start ¿ÇÌåÎÂ¶ÈÅĞ¶Ï¹Ø»ú
+			//start å£³ä½“æ¸©åº¦åˆ¤æ–­å…³æœº
 			
 			if (( pshSen->SenGetKeTiVal()< 50) && (pshSysTime->StateMachineRun_s>pshParm->STOP_HS_DIS_Time))
 			{
@@ -971,22 +981,22 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 				return;
 			}
 			
-			//end  ¿ÇÌåÎÂ¶ÈÅĞ¶Ï¹Ø»ú
-			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,¼ÆÊıÒç³ö18Ğ¡Ê±£¬
+			//end  å£³ä½“æ¸©åº¦åˆ¤æ–­å…³æœº
+			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,è®¡æ•°æº¢å‡º18å°æ—¶ï¼Œ
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//´òÓ¡µ±Ç°×´Ì¬
+			phheat->pPrintCurState(phheat);//æ‰“å°å½“å‰çŠ¶æ€
 		}
-		phheat->peMBPoll();//¸üĞÂÍ¨ĞÅ
+		phheat->peMBPoll();//æ›´æ–°é€šä¿¡
 
-		if (pshSysTime->StateMachineRun_s > 2)//±ÜÃâ¿ÇÌåÅĞ¶Ï
+		if (pshSysTime->StateMachineRun_s > 2)//é¿å…å£³ä½“åˆ¤æ–­
 		{
 
 		}
-		//start °´¼ü²Ù×÷
+		//start æŒ‰é”®æ“ä½œ
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
@@ -997,7 +1007,7 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 			phheat->StateMachineNext = STATE_MACHINE_IDEL;
 			break;
 		case KEY_STATE_SW_2_HEAT_F_WIND:
-			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//¿ÇÌåÎÂ¶È¹ı¸ß½øÍ¨·çÄ£Ê½
+			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//å£³ä½“æ¸©åº¦è¿‡é«˜è¿›é€šé£æ¨¡å¼
 			{
 				phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
 
@@ -1013,59 +1023,59 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 			break;
 
 		}
-		//end  °´¼ü²Ù×÷
-		pshAlarm->AlarmCheck(pshAlarm);//¹ÊÕÏ¼ì²é
+		//end  æŒ‰é”®æ“ä½œ
+		pshAlarm->AlarmCheck(pshAlarm);//æ•…éšœæ£€æŸ¥
 
 	}
 
 }
 void StateMachinePowerOff(struct __HEAT_HandleTypeDef *phheat)
 {
-	//²»Çå¿Õ¸÷Êä³ö×´Ì¬   Ö»ÇĞ¶ÏÊä³ö
+	//ä¸æ¸…ç©ºå„è¾“å‡ºçŠ¶æ€   åªåˆ‡æ–­è¾“å‡º
 	//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
 	pshHuoSai->OutStop(pshHuoSai);
 	pshYouBeng->OutStop(pshYouBeng);
-	pshSysTime->StateMachineRun_s = 0;//Çå¿ÕÔËĞĞÊ±¼ä¼ÆÊı
+	pshSysTime->StateMachineRun_s = 0;//æ¸…ç©ºè¿è¡Œæ—¶é—´è®¡æ•°
 
 	while (1)//
 	{
-		if (pshSysTime->SysTime.Time_s_up_flag)//ÏµÍ³Ê±¼äÓĞÃë¸üĞÂ±êÖ¾  Ö´ĞĞÀıĞĞ¼ì²éµ÷½Ú
+		if (pshSysTime->SysTime.Time_s_up_flag)//ç³»ç»Ÿæ—¶é—´æœ‰ç§’æ›´æ–°æ ‡å¿—  æ‰§è¡Œä¾‹è¡Œæ£€æŸ¥è°ƒèŠ‚
 		{
-			pshSysTime->StateMachineRun_s++;//ÏµÍ³ÔËĞĞÊ±¼ä¼ÆÊı
-			//start ×ªËÙ×Ô¶¯µ÷½Ú
+			pshSysTime->StateMachineRun_s++;//ç³»ç»Ÿè¿è¡Œæ—¶é—´è®¡æ•°
+			//start è½¬é€Ÿè‡ªåŠ¨è°ƒèŠ‚
 			//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, pshFengShan->curPre*0.8, pshSen->SenGetPowerVal());
 			if (pshFengShan->curPre < 10)
 			{
-				//MainBoardPowerDisable;//Á¢¼´¹Ø»ú£¬½â³ı×ÔËø
+				//MainBoardPowerDisable;//ç«‹å³å…³æœºï¼Œè§£é™¤è‡ªé”
 				phheat->StateMachine = STATE_MACHINE_IDEL;
 				return;
 			}
-			//end ×ªËÙ×Ô¶¯µ÷½Ú
-			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,¼ÆÊıÒç³ö18Ğ¡Ê±£¬
+			//end è½¬é€Ÿè‡ªåŠ¨è°ƒèŠ‚
+			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,è®¡æ•°æº¢å‡º18å°æ—¶ï¼Œ
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//´òÓ¡µ±Ç°×´Ì¬
+			phheat->pPrintCurState(phheat);//æ‰“å°å½“å‰çŠ¶æ€
 		}
-		phheat->peMBPoll();//¸üĞÂÍ¨ĞÅ
+		phheat->peMBPoll();//æ›´æ–°é€šä¿¡
 
-		if (pshSysTime->StateMachineRun_s > 2)//±ÜÃâ¿ÇÌåÅĞ¶Ï
+		if (pshSysTime->StateMachineRun_s > 2)//é¿å…å£³ä½“åˆ¤æ–­
 		{
 
 		}
-		//start °´¼ü²Ù×÷
+		//start æŒ‰é”®æ“ä½œ
 		
-		//end  °´¼ü²Ù×÷
-		pshAlarm->AlarmCheck(pshAlarm);//¹ÊÕÏ¼ì²é
+		//end  æŒ‰é”®æ“ä½œ
+		pshAlarm->AlarmCheck(pshAlarm);//æ•…éšœæ£€æŸ¥
 
 	}
 
 }
 
-//20150719£¬Coolthing.Liang Ôö¼Ó×ªËÙµ÷½Ú
-//»ñµÃµ÷½Ú·çÉÈÕ¼¿Õ±È
+//20150719ï¼ŒCoolthing.Liang å¢åŠ è½¬é€Ÿè°ƒèŠ‚
+//è·å¾—è°ƒèŠ‚é£æ‰‡å ç©ºæ¯”
 float FengShanAdjust_Pre(float target_pre, float current_pre, int remain_time)
 {
 	if (remain_time<1)
@@ -1076,7 +1086,8 @@ float FengShanAdjust_Pre(float target_pre, float current_pre, int remain_time)
 		return (current_pre + (target_pre - current_pre) / remain_time);
 	}
 }
-//»ñµÃµ÷½Ú·çÉÈÕ¼¿Õ±È
+
+//è·å¾—è°ƒèŠ‚é£æ‰‡å ç©ºæ¯”
 int YouBengAdjust_Pre(int target_pre, int current_pre, int remain_time)
 {
 	if (remain_time<1)
@@ -1087,8 +1098,8 @@ int YouBengAdjust_Pre(int target_pre, int current_pre, int remain_time)
 		return (current_pre + (target_pre - current_pre) / remain_time);
 	}
 }
-//20150821£¬Coolthing.Liang Ôö¼Ó»ğ»¨Èûµ÷½Ú
-//»ñµÃ»ğ»¨Èûµ÷½ÚÕ¼¿Õ±È
+//20150821ï¼ŒCoolthing.Liang å¢åŠ ç«èŠ±å¡è°ƒèŠ‚
+//è·å¾—ç«èŠ±å¡è°ƒèŠ‚å ç©ºæ¯”
 int HuoSaiAdjust_Pre(int target_pre, int current_pre, int remain_time)
 {
 	if (remain_time<1)
@@ -1099,8 +1110,19 @@ int HuoSaiAdjust_Pre(int target_pre, int current_pre, int remain_time)
 		return (current_pre + (target_pre - current_pre) / remain_time);
 	}
 }
-
-//´òÓ¡µ±Ç°×´Ì¬¡£
+//20180222ï¼ŒCoolthing.Liang è½¬é€Ÿè®¡ç®—
+//è·å¾—è°ƒèŠ‚é£æ‰‡å ç©ºæ¯”
+uint16_t FengShanAdjust_Prm(uint16_t target_prm, uint16_t current_prm, uint16_t remain_time)
+{
+	if (remain_time<1)
+	{
+		return current_prm;
+	}
+	else {
+		return (current_prm + (target_prm - current_prm) / remain_time);
+	}
+}
+//æ‰“å°å½“å‰çŠ¶æ€ã€‚
 void PrintCurrentState(struct __HEAT_HandleTypeDef *phheat)
 {
 
@@ -1148,7 +1170,7 @@ void PrintCurrentState(struct __HEAT_HandleTypeDef *phheat)
 
 
 
-	//»ñµÃµ±Ç°×´Ì¬
+	//è·å¾—å½“å‰çŠ¶æ€
 	//static  STATE_TypeDef  l_state_machine;
 	/*uint8_t temp1 = 0;
 	uint8_t temp2 = 0;
@@ -1157,44 +1179,44 @@ void PrintCurrentState(struct __HEAT_HandleTypeDef *phheat)
 	uint8_t temp = 0;
 
 	int16_t temp_uint16_t;*/
-	////×´Ì¬ÇĞ»»  ¹ÊÕÏ
-	////l_state_machine = STATE_GetNextState();//STATE_GetState();//µ÷Õû20161022
+	////çŠ¶æ€åˆ‡æ¢  æ•…éšœ
+	////l_state_machine = STATE_GetNextState();//STATE_GetState();//è°ƒæ•´20161022
 	//temp1 = phheat->StateMachine;//phheat->StateMachineNext;//0;// l_state_machine;
 	//temp2 = phheat->hAlarm.AlarmState;// phheat->hAlarm.//ALARM_State_Get();
 	//temp3 = (temp1 << 4) | temp2;
-	////Õı³£×´Ì¬  µµÎ» +±£Áô
+	////æ­£å¸¸çŠ¶æ€  æ¡£ä½ +ä¿ç•™
 	//temp1 = phheat->StateRunLevel;//0;//g_Level_Flag;//Get_DianWeiQi_Tempreture();
 	//temp2 = phheat->StateMachineNext; //0;
 	//temp4 = (temp1 << 4) | temp2;
 	//usRegInputBuf[0] = (temp3 << 8) | temp4;
-	////µçÑ¹
+	////ç”µå‹
 	//temp_uint16_t = phheat->PowerVal_M100;//phheat->hSensor.SenGetPowerVal();//(uint16_t)Get_Power_VolotageMUL10();
 	//usRegInputBuf[1] = temp_uint16_t;
-	////×ªËÙ
+	////è½¬é€Ÿ
 	//temp_uint16_t = phheat->hHuoer.HuoerGetRpm();// phheat->hSensor.SenGetJinKouVal();//Get_JinKou_Tempreture();//HUOER_GetRPM();
 	//usRegInputBuf[2] = temp_uint16_t;
-	////¿ÇÌåÎÂ¶È
+	////å£³ä½“æ¸©åº¦
 	//temp_uint16_t = phheat->hSensor.SenGetKeTiVal()+200;//Get_KeTi_Tempreture() + 200;
 	//usRegInputBuf[3] = temp_uint16_t;
-	////»ğ»¨Èûµ÷½ÚÕ¼¿Õ±È
+	////ç«èŠ±å¡è°ƒèŠ‚å ç©ºæ¯”
 	//temp_uint16_t = phheat->hHuoSai.curPre;// 0;// PWM_HuoSai_Get_Adj_Pre();
 	//usRegInputBuf[4] = temp_uint16_t;
-	////·çÉÈµ÷½ÚÕ¼¿Õ±È
+	////é£æ‰‡è°ƒèŠ‚å ç©ºæ¯”
 	//temp_uint16_t = phheat->hFengShan.curPre;//0;// PWM_FengShan_Get_Adj_Pre();
 	//usRegInputBuf[5] = temp_uint16_t;
-	////ÔËĞĞÊ±¼ä
+	////è¿è¡Œæ—¶é—´
 	//temp_uint16_t = phheat->hSysTime.StateMachineRun_s;//(uint16_t)run_time;
 	//usRegInputBuf[6] = temp_uint16_t;
-	////»ğ»¨ÈûÕ¼¿Õ±È
+	////ç«èŠ±å¡å ç©ºæ¯”
 	//temp_uint16_t = phheat->hHuoSai.curPre;//0;// PWM_HuoSaiGet_Percentage();
 	//usRegInputBuf[7] = temp_uint16_t;
-	////·çÉÈÕ¼¿Õ±È
+	////é£æ‰‡å ç©ºæ¯”
 	//temp_uint16_t = phheat->hFengShan.curPre;//0;// PWM_FengShanGet_Percentage();
 	//usRegInputBuf[8] = temp_uint16_t;
-	////ÓÍ±ÃÆµÂÊ
+	////æ²¹æ³µé¢‘ç‡
 	//temp3 = phheat->hYouBeng.curPre/10;//0;// PWM_YouBengGet_MUL100_Hz() / 10;
 
-	//temp4 = phheat->hParm.ModeXkw;//0;// g_StateMode;//¹¤×÷Ä£Ê½
+	//temp4 = phheat->hParm.ModeXkw;//0;// g_StateMode;//å·¥ä½œæ¨¡å¼
 	//usRegInputBuf[9] = (temp3 << 8) | temp4;
 	//usRegInputBuf[10] = phheat->hSensor.SenGetHuoSaiFbVal();//Get_Huosai_feedback_Vtge();//ADC_Conversion_Value[0][1]; //
 	//usRegInputBuf[11] = phheat->hSensor.SenGetChuKouVal();// phheat->hSensor.SenGetYouBengFbVal();//Get_YouBeng_feedback_Vtge();

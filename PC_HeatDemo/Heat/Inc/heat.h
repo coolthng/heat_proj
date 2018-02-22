@@ -36,30 +36,30 @@ typedef enum
 } HEAT_StatusTypeDef;
 typedef enum
 {
-	STATE_MACHINE_HEAT = (uint8_t)0x01,/*¼ÓÈÈ×´Ì¬1*/
-	STATE_MACHINE_WIND,/*Í¨·ç×´Ì¬2*/
-	STATE_MACHINE_NORMAL,/*Õı³£×´Ì¬3*/
-	STATE_MACHINE_HEAT2,/*¶ş´Îµã»ğ4*/
-	STATE_MACHINE_STOP,/*¹Ø»ú×´Ì¬5*/
-	STATE_MACHINE_POWER_OFF,/*Á¢¼´¹Ø»ú×´Ì¬6*/
-	STATE_MACHINE_IDEL,/*¿Õ×´Ì¬7*/
-	STATE_MACHINE_TEST,/*²âÊÔ×´Ì¬*/
-	STATE_MACHINE_AUTO_OIL,/*×Ô¶¯±ÃÓÍ×´Ì¬*/
-	STATE_MACHINE_DEBUG,/*²âÊÔ×´Ì¬*/
+	STATE_MACHINE_HEAT = (uint8_t)0x01,/*åŠ çƒ­çŠ¶æ€1*/
+	STATE_MACHINE_WIND,/*é€šé£çŠ¶æ€2*/
+	STATE_MACHINE_NORMAL,/*æ­£å¸¸çŠ¶æ€3*/
+	STATE_MACHINE_HEAT2,/*äºŒæ¬¡ç‚¹ç«4*/
+	STATE_MACHINE_STOP,/*å…³æœºçŠ¶æ€5*/
+	STATE_MACHINE_POWER_OFF,/*ç«‹å³å…³æœºçŠ¶æ€6*/
+	STATE_MACHINE_IDEL,/*ç©ºçŠ¶æ€7*/
+	STATE_MACHINE_TEST,/*æµ‹è¯•çŠ¶æ€*/
+	STATE_MACHINE_AUTO_OIL,/*è‡ªåŠ¨æ³µæ²¹çŠ¶æ€*/
+	STATE_MACHINE_DEBUG,/*æµ‹è¯•çŠ¶æ€*/
 
 }STATE_MACHINE_TypeDef;
 
 typedef enum __KEY_STATE_TypeDef
 {
-	KEY_STATE_NONE = 0x00,  /*·Ç·¨°´¼ü*/
-	KEY_STATE_HEAT,  /*¼ÓÈÈ°´¼ü*/
-	KEY_STATE_WIND,  /*·ç»ú°´¼ü*/
-	KEY_STATE_STOP,  /*Í£»ú°´¼ü*/
-	KEY_STATE_ADD,  /*Éıµµ°´¼ü*/
-	KEY_STATE_SUB,  /*½«µ²°´¼ü*/
-	KEY_STATE_AUTO_OIL,  /*×Ô¶¯ÉÏÓÍ¼ü*/
-	KEY_STATE_TEST,  /*²âÊÔÄ£Ê½¼ü*/
-	KEY_STATE_DEBUG,  /*µ÷ÊÔÄ£Ê½¼ü*/
+	KEY_STATE_NONE = 0x00,  /*éæ³•æŒ‰é”®*/
+	KEY_STATE_HEAT,  /*åŠ çƒ­æŒ‰é”®*/
+	KEY_STATE_WIND,  /*é£æœºæŒ‰é”®*/
+	KEY_STATE_STOP,  /*åœæœºæŒ‰é”®*/
+	KEY_STATE_ADD,  /*å‡æ¡£æŒ‰é”®*/
+	KEY_STATE_SUB,  /*å°†æŒ¡æŒ‰é”®*/
+	KEY_STATE_AUTO_OIL,  /*è‡ªåŠ¨ä¸Šæ²¹é”®*/
+	KEY_STATE_TEST,  /*æµ‹è¯•æ¨¡å¼é”®*/
+	KEY_STATE_DEBUG,  /*è°ƒè¯•æ¨¡å¼é”®*/
 	KEY_STATE_SW_2_HEAT_F_STOP,
 	KEY_STATE_SW_2_HEAT_F_IDEL,
 	KEY_STATE_SW_2_HEAT_F_WIND,
@@ -67,7 +67,7 @@ typedef enum __KEY_STATE_TypeDef
 }KEY_STATE_TypeDef;
 typedef enum
 {
-	STATE_RUN_LEVEL_1 = (uint8_t)0x01,/*ÔËĞĞµµÎ»1µµ*/
+	STATE_RUN_LEVEL_1 = (uint8_t)0x01,/*è¿è¡Œæ¡£ä½1æ¡£*/
 	STATE_RUN_LEVEL_2,
 	STATE_RUN_LEVEL_3,
 	STATE_RUN_LEVEL_4,
@@ -85,7 +85,7 @@ typedef enum
 
 }OUT_STATE_TypeDef;
 typedef struct __OUT_HandleTypeDef {
-	OUT_STATE_TypeDef OutState;//Êä³ö×´Ì¬
+	OUT_STATE_TypeDef OutState;//è¾“å‡ºçŠ¶æ€
 	uint16_t setPre;
 	uint16_t curPre;
 	//uint16_t OutFre;
@@ -107,7 +107,7 @@ typedef enum
 
 }SENSOR_STATE_TypeDef;
 typedef struct __SENSOR_HandleTypeDef {
-	SENSOR_STATE_TypeDef SensorState;//Êä³ö×´Ì¬
+	SENSOR_STATE_TypeDef SensorState;//è¾“å‡ºçŠ¶æ€
 	uint16_t SenTestPower;
 	uint16_t SenTestDianWeiQi;
 	uint16_t SenTestKeTi; 
@@ -138,7 +138,7 @@ typedef struct
 	uint16_t	Time_ms;
 }TIME_TypeDef;
 typedef struct __TIME_HandleTypeDef {
-	TIME_TypeDef SysTime;//Êä³ö×´Ì¬
+	TIME_TypeDef SysTime;//è¾“å‡ºçŠ¶æ€
 	void(*TimeInit)(struct __TIME_HandleTypeDef * phtime);
 	void(*TimeUpdata)(struct __TIME_HandleTypeDef * phtime); /* function pointer on Rx ISR */
 	void(*TimeReset)(struct __TIME_HandleTypeDef * phtime); /* function pointer on Rx ISR */
@@ -160,21 +160,21 @@ typedef struct __KEY_HandleTypeDef {
 }KEY_HandleTypeDef;
 typedef enum
 {
-	ALARM_ToPowerOff = 0x01,//µôµçÍ£»ú1
-	ALARM_CommError,//Í¨ĞÅ¹ÊÕÏ2
-	ALARM_WindStop,//µç»ú¹ÊÕÏ3
-	ALARM_HuoSaiError,//»ğ»¨Èû¹ÊÕÏ4
-	ALARM_YouBengError,//ÓÍ±Ã¹ÊÕÏ5
-	ALARM_TempOver,//ÎÂ¶È¹ıÈÈ£¬³ö¿Ú³¬¹ı150¶È6
-	ALARM_PowerError,//µçÑ¹¹ÊÕÏ7
-	ALARM_OutHeat2,//¶ş´Îµã»ğÊ§°Ü 8
-	ALARM_Heat2,//¶ş´Îµã»ğ 9
+	ALARM_ToPowerOff = 0x01,//æ‰ç”µåœæœº1
+	ALARM_CommError,//é€šä¿¡æ•…éšœ2
+	ALARM_WindStop,//ç”µæœºæ•…éšœ3
+	ALARM_HuoSaiError,//ç«èŠ±å¡æ•…éšœ4
+	ALARM_YouBengError,//æ²¹æ³µæ•…éšœ5
+	ALARM_TempOver,//æ¸©åº¦è¿‡çƒ­ï¼Œå‡ºå£è¶…è¿‡150åº¦6
+	ALARM_PowerError,//ç”µå‹æ•…éšœ7
+	ALARM_OutHeat2,//äºŒæ¬¡ç‚¹ç«å¤±è´¥ 8
+	ALARM_Heat2,//äºŒæ¬¡ç‚¹ç« 9
 
-	ALARM_NormalHeat,//Õı³£¼ÓÈÈÖ¸Ê¾ 10
-	ALARM_NormalNone,//¹Ø±ÕÖ¸Ê¾ 11
-	ALARM_ToStop,//Í£»ú12
-	ALARM_NoChange,//ÎŞ¹ÊÕÏÇĞ»»13
-	ALARM_Idel,//¿Õ×´Ì¬Ö¸Ê¾14
+	ALARM_NormalHeat,//æ­£å¸¸åŠ çƒ­æŒ‡ç¤º 10
+	ALARM_NormalNone,//å…³é—­æŒ‡ç¤º 11
+	ALARM_ToStop,//åœæœº12
+	ALARM_NoChange,//æ— æ•…éšœåˆ‡æ¢13
+	ALARM_Idel,//ç©ºçŠ¶æ€æŒ‡ç¤º14
 
 }ALARM_STATE_TypeDef;
 
@@ -187,23 +187,28 @@ typedef struct __ALARM_HandleTypeDef {
 }ALARM_HandleTypeDef;
 typedef enum
 {
-	MODE_2KW = 0x02,//Ä£Ê½
-	MODE_3KW = 0x03,//Ä£Ê½
-	MODE_5KW = 0x05,//Ä£Ê½
-	MODE_TEST = 0x80,//Ä£Ê½
+	MODE_2KW = 0x02,//æ¨¡å¼
+	MODE_3KW = 0x03,//æ¨¡å¼
+	MODE_5KW = 0x05,//æ¨¡å¼
+	MODE_TEST = 0x80,//æ¨¡å¼
 
 
 }MODE_XKW_TypeDef;
 typedef struct __PARM_TypeDef {
 	uint16_t Start_s;
 	uint16_t Stop_s;
-	uint16_t Pre;
+	uint16_t parm;
 
 }PARM_TypeDef;
 
 typedef struct __PARM_HandleTypeDef {
 	void(*ParmInit)(struct __PARM_HandleTypeDef * phparm);
 	void(*ParmSet)(struct __PARM_HandleTypeDef * phparm);
+
+	uint8_t StartHeatKeTiTemp;//å¼€å§‹ç‚¹ç«å£³ä½“æ¸©åº¦ï¼Œå¤§äºæŸä¸€æ¸©åº¦ï¼Œéœ€è¦å¹å‡‰åå†ç‚¹ç«
+	int8_t HeatKeTiRiseTempSuc;//ç‚¹ç«æˆåŠŸæ ‡å¿—
+
+
 	uint8_t FS_StartPrmPre;
 	uint8_t FS1000PrmPre;
 	uint8_t FS1500PrmPre;
@@ -227,9 +232,10 @@ typedef struct __PARM_HandleTypeDef {
 	MODE_XKW_TypeDef ModeXkw;
 
 
-	//start Æô¶¯²ÎÊı»¯ÅäÖÃ±í
+	//start å¯åŠ¨å‚æ•°åŒ–é…ç½®è¡¨
 	
 	uint16_t HEAT_FS_EN_Time;
+	
 	PARM_TypeDef HEAT_FS_D1;
 	PARM_TypeDef HEAT_FS_D2;
 	PARM_TypeDef HEAT_FS_D3;
@@ -305,7 +311,7 @@ typedef struct __PARM_HandleTypeDef {
 	uint16_t NORMAL_STATE_KETI_DROPDOWN_Temp;
 
 
-	//stop  Ä£Ê½
+	//stop  æ¨¡å¼
 	PARM_TypeDef STOP_FS_D1;
 	PARM_TypeDef STOP_FS_D2;
 	
@@ -313,7 +319,7 @@ typedef struct __PARM_HandleTypeDef {
 	PARM_TypeDef STOP_HS_D2;
 	uint16_t STOP_HS_DIS_Time;
 
-	//end Æô¶¯²ÎÊı»¯ÅäÖÃ±í
+	//end å¯åŠ¨å‚æ•°åŒ–é…ç½®è¡¨
 	uint16_t HEAT_STATE_KETI_RISE_TEMP;
 
 }PARM_HandleTypeDef;
@@ -335,15 +341,15 @@ typedef struct __HEAT_HandleTypeDef {
 	void(*peMBPoll)();
 	void (*pStateMachineAdjest)(struct __HEAT_HandleTypeDef * phheat);
 	OUT_HandleTypeDef  hHuoSai;
-	//uint16_t huoSai_SetPre;//ÉèÖÃÕ¼¿Õ±È
-	//uint16_t huoSai_CurPre;//µ÷ÊÔÓÃ
+	//uint16_t huoSai_SetPre;//è®¾ç½®å ç©ºæ¯”
+	//uint16_t huoSai_CurPre;//è°ƒè¯•ç”¨
 	//uint16_t (*setHuoSaiParm)(struct __HEAT_HandleTypeDef * phheat);
 	//OUT_HandleTypeDef  *phHuoSai;
 	OUT_HandleTypeDef  hFengShan;
-	//uint16_t fengShan_SetPre;//ÉèÖÃÕ¼¿Õ±È
-	//uint16_t fengShan_CurPre;//µ÷ÊÔÓÃ
-	//uint16_t fengShan_SetPrm;//ÉèÖÃÕ¼¿Õ±È
-	//uint16_t fengShan_CurPrm;//µ÷ÊÔÓÃ
+	//uint16_t fengShan_SetPre;//è®¾ç½®å ç©ºæ¯”
+	//uint16_t fengShan_CurPre;//è°ƒè¯•ç”¨
+	//uint16_t fengShan_SetPrm;//è®¾ç½®å ç©ºæ¯”
+	//uint16_t fengShan_CurPrm;//è°ƒè¯•ç”¨
 	//uint16_t (*setfengSHanParm)(struct __HEAT_HandleTypeDef * phheat);
 
 

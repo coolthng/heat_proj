@@ -14,7 +14,7 @@ uint16_t SetPreFengShan(int16_t adjust)
 #if  (PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 	hheat.CurrentPrm = current_pre;
 	hheat.CurrentPrmTest = current_pre;
-	printf("µ±Ç°×ªËÙ:%d,adjust:%d\n", hheat.CurrentPrm, adjust);
+	printf("å½“å‰è½¬é€Ÿ:%d,adjust:%d\n", hheat.CurrentPrm, adjust);
 #else
 	hheat.CurrentPrmTest=current_pre;
 	htim17.Instance->CCR1=current_pre;
@@ -23,40 +23,40 @@ uint16_t SetPreFengShan(int16_t adjust)
 #define DEBUG_PRINT(x)    printf(x)  //NULL
 int16_t getJinKouTemp(HEAT_HandleTypeDef *phheat)
 {
-	//Ìí¼Ó½ø¿Ú»ñÈ¡½ø¿ÚÎÂ¶È
-	DEBUG_PRINT("»ñÈ¡½ø¿ÚÎÂ¶È\n");
+	//æ·»åŠ è¿›å£èŽ·å–è¿›å£æ¸©åº¦
+	DEBUG_PRINT("èŽ·å–è¿›å£æ¸©åº¦\n");
 	
 	phheat->JinKouTemp = 100;
 }
 int16_t getChuKouTemp(HEAT_HandleTypeDef *phheat)
 {
-	//Ìí¼Ó½ø¿Ú»ñÈ¡½ø¿ÚÎÂ¶È
-	DEBUG_PRINT("»ñÈ¡³ö¿ÚÎÂ¶È\n");
+	//æ·»åŠ è¿›å£èŽ·å–è¿›å£æ¸©åº¦
+	DEBUG_PRINT("èŽ·å–å‡ºå£æ¸©åº¦\n");
 
 	phheat->ChuKouTemp = 100;
 }
 int16_t getKeTiTemp(HEAT_HandleTypeDef *phheat)
 {
-	//Ìí¼Ó½ø¿Ú»ñÈ¡½ø¿ÚÎÂ¶È
-	DEBUG_PRINT("»ñÈ¡¿ÇÌåÎÂ¶È\n");
+	//æ·»åŠ è¿›å£èŽ·å–è¿›å£æ¸©åº¦
+	DEBUG_PRINT("èŽ·å–å£³ä½“æ¸©åº¦\n");
 
 	phheat->KeTiTemp = 100;
 }
 int16_t getPowerVal(HEAT_HandleTypeDef *phheat)
 {
-	//Ìí¼Ó½ø¿Ú»ñÈ¡½ø¿ÚÎÂ¶È
-	DEBUG_PRINT("»ñÈ¡µçÔ´µçÑ¹\n");
+	//æ·»åŠ è¿›å£èŽ·å–è¿›å£æ¸©åº¦
+	DEBUG_PRINT("èŽ·å–ç”µæºç”µåŽ‹\n");
 
 	phheat->PowerVal_M100 = 2400;
 }
 HEAT_StatusTypeDef HEAT_Init(HEAT_HandleTypeDef *phheat)
 {
 	
-//²ÎÊý³õÊ¼»¯  ÅäÖÃ²ÎÊý  °æ±¾ºÅ¡¢
+//å‚æ•°åˆå§‹åŒ–  é…ç½®å‚æ•°  ç‰ˆæœ¬å·ã€
 //hheat->hParm.ParmInit = PARM_Init;
 //hheat->hParm.ParmInit(hheat.hParm);
 //hheat->hParm.ParmSet(hheat.hParm);
-//º¯Êý½Ó¿Ú³õÊ¼»¯  »ñÈ¡ÎÂ¶È¡¢µçÑ¹¡¢·´À¡   ·çÉÈ ¿ÇÌå
+//å‡½æ•°æŽ¥å£åˆå§‹åŒ–  èŽ·å–æ¸©åº¦ã€ç”µåŽ‹ã€åé¦ˆ   é£Žæ‰‡ å£³ä½“
 phheat->pStateMachineInit = StateMachineInit;
 phheat->pStateMachineInit(phheat);
 	phheat->HW_Version = 100;
@@ -86,7 +86,7 @@ phheat->pStateMachineInit(phheat);
 	
 	int aa = 1;
 
-	//start ³õÊ¼»¯ÏµÍ³
+	//start åˆå§‹åŒ–ç³»ç»Ÿ
 	
 
 	
@@ -110,12 +110,17 @@ phheat->pStateMachineInit(phheat);
 	phheat->hHuoer.HuoerInit = HUOER_Init;
 	phheat->hHuoer.HuoerInit(&phheat->hHuoer);
 
-	phheat->peMBPoll = eMBPoll;//485Í¨ÐÅ
+	phheat->peMBPoll = eMBPoll;//485é€šä¿¡
 	phheat->pPrintCurState = PrintCurrentState;
 	phheat->pStateMachineAdjest = StateMachineAdjust;
 	phheat->pSetFenShanPre = SetPreFengShan;
+
+	phheat->hParm.ParmInit = PARM_Init;
+	phheat->hParm.ParmSet = PARM_Set;
+	phheat->hParm.ParmInit(&phheat->hParm);
+	phheat->hParm.ParmSet(&phheat->hParm);
 	//hheat.hPower.SensorInit=ADC
-	//end  ³õÊ¼»¯ÏµÍ³
+	//end  åˆå§‹åŒ–ç³»ç»Ÿ
 	//hheat->test = 100;
 
 	return HEAT_OK;

@@ -12,7 +12,7 @@ void KEY_StateInit(struct __KEY_HandleTypeDef * phkey)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -25,7 +25,7 @@ void KEY_StateSet(KEY_STATE_TypeDef keyState)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -37,7 +37,7 @@ KEY_STATE_TypeDef KEY_StateGet()
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -52,7 +52,7 @@ KEY_STATE_TypeDef KEY_StateGetClear( )
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }

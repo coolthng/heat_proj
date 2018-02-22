@@ -10,7 +10,7 @@ void TIME_Init(struct __TIME_HandleTypeDef * phtime)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }

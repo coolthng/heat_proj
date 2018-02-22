@@ -5,11 +5,11 @@
 
 #include "stdint.h"
 #include "stdio.h"
-//start 读 txt文件
+//start 露脕 txt脦脛录镁
 #include <stdlib.h>
 #include <string.h>
 #define MAX_LINE 1024
-//end  读txt文件
+//end  露脕txt脦脛录镁
 //#include "thread.h"
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 #include<Windows.h>;

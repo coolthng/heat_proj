@@ -20,7 +20,7 @@ void ADC_Init(struct __SENSOR_HandleTypeDef * phsensor)
 
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 
@@ -32,7 +32,7 @@ int16_t ADC_GetPowerVal()
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -44,7 +44,7 @@ int16_t ADC_GetKeTiVal()
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -56,7 +56,7 @@ int16_t ADC_GetJinKouVal()
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -68,7 +68,7 @@ int16_t ADC_GetChuKouVal()
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -80,7 +80,7 @@ int16_t ADC_GetHuoSaiFbVal()
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -92,7 +92,7 @@ int16_t ADC_GetYouBengFbVal()
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }
@@ -105,7 +105,7 @@ int16_t ADC_GetDianWeiQiVal()
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 
 }

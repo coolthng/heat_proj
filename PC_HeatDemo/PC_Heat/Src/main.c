@@ -17,9 +17,8 @@ HEAT_HandleTypeDef *phheat;
 int main(void)
 {
 	
-
-	eMBInit(MB_RTU, 0x01, 1, 115200, MB_PAR_NONE);//modbus³õÊ¼»¯
-#if 0//²âÊÔÄ£Ê½
+	eMBInit(MB_RTU, 0x01, 1, 115200, MB_PAR_NONE);//modbusåˆå§‹åŒ–
+#if 0//æµ‹è¯•æ¨¡å¼
 	while (1)
 	{
 		eMBPoll();
@@ -30,7 +29,7 @@ int main(void)
 	
 
 	HEAT_Init(&hheat);
-	//start  ²âÊÔº¯Êı
+	//start  æµ‹è¯•å‡½æ•°
 	
 	
 	//hheat.hHuoSai.OutStart(&hheat.hHuoSai);
@@ -39,9 +38,9 @@ int main(void)
 
 	
 
-	//end  ²âÊÔº¯Êı
+	//end  æµ‹è¯•å‡½æ•°
 	
-	hheat.StateMachine = STATE_MACHINE_IDEL;//ÖÃÎ»Îª¿Õ×´Ì¬
+	hheat.StateMachine = STATE_MACHINE_IDEL;//ç½®ä½ä¸ºç©ºçŠ¶æ€
 	hheat.StateMachineNext = STATE_MACHINE_IDEL;
 
 	while (1)
@@ -59,7 +58,7 @@ int main(void)
 			StateMachineWind(&hheat);
 			break;
 		case STATE_MACHINE_HEAT:
-			//StateMachineHeat(&hheat);
+			StateMachineHeat(&hheat);
 			break;
 		case STATE_MACHINE_STOP:
 			//StateMachineStop(&hheat);

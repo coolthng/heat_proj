@@ -115,12 +115,12 @@ void eMBInit(eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate
 	//for (int i = 1, j=0; i < 16; i++)
 	//{
 	//	sprintf(tmp, "com%d", i);
-	//	hCom = CreateFile(tmp,//COM1¿Ú
-	//		GENERIC_READ | GENERIC_WRITE, //ÔÊÐí¶ÁºÍÐ´
-	//		0, //¶ÀÕ¼·½Ê½
+	//	hCom = CreateFile(tmp,//COM1å£
+	//		GENERIC_READ | GENERIC_WRITE, //å…è®¸è¯»å’Œå†™
+	//		0, //ç‹¬å æ–¹å¼
 	//		NULL,
-	//		OPEN_EXISTING, //´ò¿ª¶ø²»ÊÇ´´½¨
-	//		0, //Í¬²½·½Ê½
+	//		OPEN_EXISTING, //æ‰“å¼€è€Œä¸æ˜¯åˆ›å»º
+	//		0, //åŒæ­¥æ–¹å¼
 	//		NULL);
 	//	if (hCom == (HANDLE)-1)
 	//	{
@@ -132,38 +132,38 @@ void eMBInit(eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate
 	//	}
 	//}
 	//TEXT("COM1")
-	hCom = CreateFile("COM3",//COM1¿Ú
-		GENERIC_READ | GENERIC_WRITE, //ÔÊÐí¶ÁºÍÐ´
-		0, //¶ÀÕ¼·½Ê½
+	hCom = CreateFile("COM1",//COM1å£
+		GENERIC_READ | GENERIC_WRITE, //å…è®¸è¯»å’Œå†™
+		0, //ç‹¬å æ–¹å¼
 		NULL,
-		OPEN_EXISTING, //´ò¿ª¶ø²»ÊÇ´´½¨
-		0, //Í¬²½·½Ê½
+		OPEN_EXISTING, //æ‰“å¼€è€Œä¸æ˜¯åˆ›å»º
+		0, //åŒæ­¥æ–¹å¼
 		NULL);
 	if (hCom == (HANDLE)-1)
 	{
-		printf("´ò¿ªCOMÊ§°Ü!\n");
+		printf("open com faile!\n");
 		return FALSE;
 	}
 	else
 	{
-		printf("COM´ò¿ª³É¹¦£¡\n");
+		printf("open COM success \n");
 	}
-	SetupComm(hCom, 1024, 1024); //ÊäÈë»º³åÇøºÍÊä³ö»º³åÇøµÄ´óÐ¡¶¼ÊÇ1024
+	SetupComm(hCom, 1024, 1024); //è¾“å…¥ç¼“å†²åŒºå’Œè¾“å‡ºç¼“å†²åŒºçš„å¤§å°éƒ½æ˜¯1024
 	COMMTIMEOUTS TimeOuts;
-	//Éè¶¨¶Á³¬Ê±
+	//è®¾å®šè¯»è¶…æ—¶
 	TimeOuts.ReadIntervalTimeout = 10;
 	TimeOuts.ReadTotalTimeoutMultiplier = 50;
 	TimeOuts.ReadTotalTimeoutConstant = 100;
-	//Éè¶¨Ð´³¬Ê±
+	//è®¾å®šå†™è¶…æ—¶
 	TimeOuts.WriteTotalTimeoutMultiplier = 500;
 	TimeOuts.WriteTotalTimeoutConstant = 2000;
-	SetCommTimeouts(hCom, &TimeOuts); //ÉèÖÃ³¬Ê±
+	SetCommTimeouts(hCom, &TimeOuts); //è®¾ç½®è¶…æ—¶
 	DCB dcb;
 	GetCommState(hCom, &dcb);
-	dcb.BaudRate = ulBaudRate; //²¨ÌØÂÊÎª9600
-	dcb.ByteSize = 8; //Ã¿¸ö×Ö½ÚÓÐ8Î»
-	dcb.Parity = NOPARITY; //ÎÞÆæÅ¼Ð£ÑéÎ»
-	dcb.StopBits = ONESTOPBIT;// ONE5STOPBITS; //Á½¸öÍ£Ö¹Î»
+	dcb.BaudRate = ulBaudRate; //æ³¢ç‰¹çŽ‡ä¸º9600
+	dcb.ByteSize = 8; //æ¯ä¸ªå­—èŠ‚æœ‰8ä½
+	dcb.Parity = NOPARITY; //æ— å¥‡å¶æ ¡éªŒä½
+	dcb.StopBits = ONESTOPBIT;// ONE5STOPBITS; //ä¸¤ä¸ªåœæ­¢ä½
 	SetCommState(hCom, &dcb);
 	
 }
@@ -183,7 +183,7 @@ void eMBPoll()
 	extern HEAT_HandleTypeDef hheat;
 	static uint8_t MB_RxBuf[80];
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-	static DWORD wCount;//¶ÁÈ¡µÄ×Ö½ÚÊý
+	static DWORD wCount;//è¯»å–çš„å­—èŠ‚æ•°
 	static DWORD rCount;
 	static BOOL bWriteStat;
 	static uint8_t TxLength = 0;
@@ -194,7 +194,7 @@ void eMBPoll()
 	static uint8_t RxArrPtr = 0;
 	static uint8_t MB_TxBuf[80];
 	static uint8_t RxArrFlag;
-	PurgeComm(hCom, PURGE_TXCLEAR | PURGE_RXCLEAR); //Çå¿Õ»º³åÇø
+	PurgeComm(hCom, PURGE_TXCLEAR | PURGE_RXCLEAR); //æ¸…ç©ºç¼“å†²åŒº
 		//printf("%s\n", str);
 	do {
 		bReadStat = ReadFile(hCom, &RxArrTmp, 1, &rCount, NULL);
@@ -233,9 +233,9 @@ void eMBPoll()
 			MB_RxBuf[0]=0;
 			switch (RxArr[0])
 			{
-			case 'a':////É¨Ãè¸üÐÂÏÔÊ¾×´Ì¬
+			case 'a':////æ‰«ææ›´æ–°æ˜¾ç¤ºçŠ¶æ€
 				TxArr[0] = 0x61;
-				TxArr[1] = 0;//±£ÁôÎªÊý¾Ý³¤¶È³¤¶È
+				TxArr[1] = 0;//ä¿ç•™ä¸ºæ•°æ®é•¿åº¦é•¿åº¦
 				TxArr[2] = hheat.StateMachine << 4 | (hheat.AlarmState);
 				TxArr[3] = hheat.StateRunLevel << 4;
 				
@@ -258,7 +258,7 @@ void eMBPoll()
 				TxArr[19] = 0x0a;
 				TxArr[20] = NULL;
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//·¢³ö
+				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//å‘å‡º
 				static uint8_t TxArr22[500];
 				for (int i = 0; i < 20; i++)
 				{
@@ -266,7 +266,8 @@ void eMBPoll()
 				}
 				TxArr22[0] = 20;
 				//Sleep(100);
-				bWriteStat = WriteFile(hCom, TxArr22, 21, &wCount, NULL);//·¢³ö
+				bWriteStat = WriteFile(hCom, TxArr, 20, &wCount, NULL);//å‘å‡º
+				//bWriteStat = WriteFile(hCom, TxArr22, 21, &wCount, NULL);//å‘å‡º
 #else
 					RS485_TX;
 					HAL_Delay(5);
@@ -284,8 +285,8 @@ void eMBPoll()
 			TxArr[3]=NULL;
 			
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//·¢³ö
-				bWriteStat = WriteFile(hCom, TxArr, 3, &wCount, NULL);//·¢³ö
+				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//å‘å‡º
+				bWriteStat = WriteFile(hCom, TxArr, 3, &wCount, NULL);//å‘å‡º
 #else
 					RS485_TX;
 			HAL_Delay(5);
@@ -301,8 +302,8 @@ void eMBPoll()
 				TxArr[2]=0x0a;
 			
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//·¢³ö
-				bWriteStat = WriteFile(hCom, TxArr, 3, &wCount, NULL);//·¢³ö
+				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//å‘å‡º
+				bWriteStat = WriteFile(hCom, TxArr, 3, &wCount, NULL);//å‘å‡º
 #else
 					RS485_TX;
 			HAL_Delay(5);
@@ -313,7 +314,7 @@ void eMBPoll()
 				break;
 			case 's':
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//ReadFile(hCom, MB_RxBuf, 20, &rCount, NULL);//ÔÙ¶Á20
+				//ReadFile(hCom, MB_RxBuf, 20, &rCount, NULL);//å†è¯»20
 #endif
 				hheat.hSensor.SenTestPower = *(int16_t*)(RxArr + 2);
 				hheat.hSensor.SenTestDianWeiQi = *(int16_t*)(RxArr+2 + 2);
@@ -322,14 +323,14 @@ void eMBPoll()
 				hheat.hSensor.SenTestChuKou = *(int16_t*)(RxArr+2 + 8);
 				hheat.hSensor.SenTestHuoSaiFb = *(int16_t*)(RxArr+2 + 10);
 				hheat.hSensor.SenTestYouBengFb = *(int16_t*)(RxArr + 2 + 12);
-				hheat.TargetPrm = *(uint16_t *)(RxArr + 2 + 14);//²âÊÔ
+				hheat.TargetPrm = *(uint16_t *)(RxArr + 2 + 14);//æµ‹è¯•
 				TxArr[0] = 'o';
 				TxArr[1] = 'k';
 				TxArr[2] = NULL;
 
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//·¢³ö
-				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//·¢³ö
+				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//å‘å‡º
+				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//å‘å‡º
 #else
 				RS485_TX;
 				HAL_Delay(5);
@@ -345,8 +346,8 @@ void eMBPoll()
 			TxArr[2]=NULL;
 			
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//·¢³ö
-				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//·¢³ö
+				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//å‘å‡º
+				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//å‘å‡º
 #else
 					RS485_TX;
 			HAL_Delay(5);
@@ -355,11 +356,11 @@ void eMBPoll()
 #endif
 				break;
 			default:
-				sprintf(TxArr,"Parm is not ok\n");
+				//sprintf(TxArr,"Parm is not ok\n");
 			
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//·¢³ö
-				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//·¢³ö
+				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//å‘å‡º
+				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//å‘å‡º
 #else
 					RS485_TX;
 			HAL_Delay(5);
@@ -376,7 +377,7 @@ void eMBPoll()
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 				if (!bReadStat)
 		{
-			printf("¶Á´®¿ÚÊ§°Ü!");
+			printf("è¯»ä¸²å£å¤±è´¥!");
 			return FALSE;
 		}
 		else

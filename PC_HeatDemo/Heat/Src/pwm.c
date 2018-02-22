@@ -15,7 +15,7 @@ void PWM_HuoSaiInit(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_FengShanInit(struct __OUT_HandleTypeDef * phout)
@@ -32,7 +32,7 @@ void PWM_FengShanInit(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_YouBengInit(struct __OUT_HandleTypeDef * phout)
@@ -47,7 +47,7 @@ void PWM_YouBengInit(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_HuoSaiStart(struct __OUT_HandleTypeDef * phout)
@@ -58,7 +58,7 @@ void PWM_HuoSaiStart(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_FengShanStart(struct __OUT_HandleTypeDef * phout)
@@ -69,7 +69,7 @@ void PWM_FengShanStart(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_YouBengStart(struct __OUT_HandleTypeDef * phout)
@@ -80,7 +80,7 @@ void PWM_YouBengStart(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_HuoSaiStop(struct __OUT_HandleTypeDef * phout)
@@ -91,7 +91,7 @@ void PWM_HuoSaiStop(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_FengShanStop(struct __OUT_HandleTypeDef * phout)
@@ -102,7 +102,7 @@ void PWM_FengShanStop(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_YouBengStop(struct __OUT_HandleTypeDef * phout)
@@ -114,7 +114,7 @@ void PWM_YouBengStop(struct __OUT_HandleTypeDef * phout)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 
@@ -126,7 +126,7 @@ void PWM_HuoSaiSetParm(struct __HEAT_HandleTypeDef * phheat)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_FengShanSetParm(struct __HEAT_HandleTypeDef * phheat)
@@ -137,7 +137,7 @@ void PWM_FengShanSetParm(struct __HEAT_HandleTypeDef * phheat)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 void PWM_YouBengSetParm(struct __HEAT_HandleTypeDef * phheat)
@@ -148,7 +148,7 @@ void PWM_YouBengSetParm(struct __HEAT_HandleTypeDef * phheat)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM32)
 #elif(PLATE_FORM_SIM==PLATE_FORM_SIM_STM8)
 #else
-#error  请先确认编译平台
+#error  璇峰厛纭缂栬瘧骞冲彴
 #endif
 }
 
