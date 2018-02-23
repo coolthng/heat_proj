@@ -11,6 +11,8 @@ using System.IO.Ports;
 using ReadExcel;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.IO;
+
 
 namespace PC_HeatDemo
 {
@@ -35,6 +37,7 @@ namespace PC_HeatDemo
         delegate void getstring(String mystring);//定义委托        
         getstring getmystring;///定义委托变量
         byte[] updata_temp = new byte[40];
+        StreamWriter swHeatLogFile;
         private void DoUpdate()///希望被执行的函数（被委托）        
         {
             commflag_count = 5;
@@ -241,6 +244,14 @@ namespace PC_HeatDemo
                 label_ChuKou.Text = int_youbeng_FB.ToString();
 
                 //
+                //start recond log
+                if (bTLogFlag)//文件可写入
+                {
+                    swHeatLogFile.Write(label_RunTime.Text + " " + label_FengShan.Text + "\r\n");
+                }
+               
+            //end recond log
+
             }
             else if (UpdataArr[0] == 'p')
             {
@@ -828,6 +839,7 @@ namespace PC_HeatDemo
 
         private void ThreadSendParm()
         {
+            const bool StaticHeatParmFlag = false;
             //Thread.Sleep(1000);
             //SendKeys.SendWait("{Enter}");
 
@@ -840,19 +852,24 @@ namespace PC_HeatDemo
             int position = mc.Index;
             string heatParmDir = projDirStr.Substring(0, position);
             String filename = heatParmDir + "PC_GuiDemo" + "\\" + "heatparm.xlsx";
-            //Array arr = readExcel.ReadXlsSheetName(filename, "heatparm");//读参数配置表
-            //test
-            
+            int parmLength = 0;
             int[] testArr = new int[20];
-            //testArr[0][0] = 70;
-            //Array arr = (Array)testArr[];
-            //rr ={ 70,5,1,23,44};
-            for (int i= 0;i< 20;i++)
+            Array arr ;
+            if (StaticHeatParmFlag)
             {
-                testArr[i] = i;
-                //arr.SetValue(1,1);
+                for (int i = 0; i < 20; i++)
+                {
+                    testArr[i] = i;
+                }
+                parmLength = testArr.Length;// arr.Length;
             }
-            int parmLength = testArr.Length;// arr.Length;
+            else
+            {
+               arr = readExcel.ReadXlsSheetName(filename, "heatparm");//读参数配置表
+                parmLength = arr.Length;// arr.Length;
+            }
+            
+            
             int parmTxPostion = 0;
             //textBox_Other.Text = "读取配置信息成功，正在写数据";
             stateBackParmFlag = true;
@@ -873,9 +890,17 @@ namespace PC_HeatDemo
                 int i = 0;
                 for (; i < 7 && (parmTxPostion + i) < parmLength; i++)
                 {
-                    //double tmp = (double)arr.GetValue(parmTxPostion + i + 1, 1);//parmTxPostion++);
-                    UInt16 tmp =(UInt16) testArr[parmTxPostion+i];
-                    SetUpParmArry[i + 1] = (Int16)(tmp); //BitConverter.ToInt16(arr[parmTxPostion]);  // arr[parmTxPostion++];
+                    if (StaticHeatParmFlag)
+                    {
+                        UInt16 tmp = (UInt16)testArr[parmTxPostion + i];
+                        SetUpParmArry[i + 1] = (Int16)(tmp); //BitConverter.ToInt16(arr[parmTxPostion]);  // arr[parmTxPostion++];
+                    }
+                    else
+                    {
+                        double tmp = (double)arr.GetValue(parmTxPostion + i + 1, 1);//parmTxPostion++);
+                        SetUpParmArry[i + 1] = (Int16)(tmp); //BitConverter.ToInt16(arr[parmTxPostion]);  // arr[parmTxPostion++];
+                    }
+
                 }
                 SetUpParmArry[0] = (Int16)(parmTxPostion * 16 + i);
 
@@ -886,6 +911,28 @@ namespace PC_HeatDemo
             }
            
 
+        }
+        bool bTLogFlag = false;
+        private void bTLog_Click(object sender, EventArgs e)
+        {
+            bTLogFlag = !bTLogFlag;
+            if (bTLogFlag)
+            {
+                bTLog.Text = "保存文件";
+                 string str= Environment.GetFolderPath(Environment.SpecialFolder.Desktop)+ "\\HeatLogFile" + DateTime.Now.ToString("yyyy-MM-dd-HHmmss") + ".txt";
+                swHeatLogFile = new StreamWriter(str);
+               // swHeatLogFile.Close();
+               // swHeatLogFile = File.AppendText(str) ;
+                textBox_Other.Text = "文件创建在"+str;
+                String wstr = "start recoad\r\n";
+                swHeatLogFile.Write(wstr);
+                
+            }
+            else {
+                bTLog.Text = "创建文件";
+                swHeatLogFile.Write("end recond\r\n");
+                swHeatLogFile.Close();
+            }
         }
     }
 }
