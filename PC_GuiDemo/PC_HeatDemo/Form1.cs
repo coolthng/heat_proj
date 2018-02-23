@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO.Ports;
+using ReadExcel;
+using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace PC_HeatDemo
 {
@@ -24,21 +27,25 @@ namespace PC_HeatDemo
         byte levelState = 0;//正常工作模式档位
         bool stateSendFlag = false;//状态下发完成标志
         bool stateSetParmFlag = false;//设置参数下发完成标志
+        bool stateUpParmFlag = false;//更新参数标志
+        bool stateBackParmFlag = false;//更新参数回传标志
         Int16[] SetStateParmArry = new Int16[10];
-
+        Int16[] SetUpParmArry = new Int16[10];
+        
         delegate void getstring(String mystring);//定义委托        
         getstring getmystring;///定义委托变量
         byte[] updata_temp = new byte[40];
         private void DoUpdate()///希望被执行的函数（被委托）        
         {
             commflag_count = 5;
-          //01 04 09 22 34 00 22 00 33 00 44 71cB
+
+            //01 04 09 22 34 00 22 00 33 00 44 71cB
             if ((UpdataArr[0] == 0x61) && (UpdataArr[1] == 0x00))
             {
                 string item_temp;
                 for (int i = 0; i < 24; i++)
                 {
-                    updata_temp[i] = UpdataArr[i+2];
+                    updata_temp[i] = UpdataArr[i + 2];
 
                 }
                 //int temptest2 = updata_temp[0] / 16;
@@ -128,9 +135,9 @@ namespace PC_HeatDemo
                     default:
                         break;
                 }
-                
+
                 //档位
-                switch (updata_temp[1]/16)//高四位档位  
+                switch (updata_temp[1] / 16)//高四位档位  
                 {
                     case 1:
                         label_DianWeiQi.Text = "1档位";
@@ -170,24 +177,24 @@ namespace PC_HeatDemo
                 label_DianYuan.Text = item_temp;
                 //转速
                 int int_zhuansu = BitConverter.ToUInt16(updata_temp, 4);// updata_temp[5] * 256 + updata_temp[4];
-                item_temp =(int_zhuansu).ToString()+ "RPM"; 
+                item_temp = (int_zhuansu).ToString() + "RPM";
                 label_FengShan.Text = item_temp;
                 //壳体温度
                 int int_keti = BitConverter.ToUInt16(updata_temp, 6);// updata_temp[6] * 256 + updata_temp[7] - 200;//50基值  保证传递的是正数
-                item_temp=int_keti.ToString()+ '℃'; 
+                item_temp = int_keti.ToString() + '℃';
                 label_KeTi.Text = item_temp;
                 //火花塞调节占空比
                 int int_huosai_adj = BitConverter.ToUInt16(updata_temp, 8);// updata_temp[8] * 256 + updata_temp[9];
-                item_temp =int_huosai_adj.ToString()+ '%'; 
+                item_temp = int_huosai_adj.ToString() + '%';
                 label_HuoSai_Adj_Pre.Text = item_temp;
                 //风扇调节占空比
                 int int_fengshan_adj = BitConverter.ToUInt16(updata_temp, 10);// updata_temp[10] * 256 + updata_temp[11];
-                item_temp = int_fengshan_adj.ToString() + '%'; 
+                item_temp = int_fengshan_adj.ToString() + '%';
                 label_FengShan_Adj_Pre.Text = item_temp;
 
-              
-                
-                
+
+
+
                 //活塞占空比
                 //int int_huosai = updata_temp[14] * 256 + updata_temp[15];
                 //item_temp =int_huosai.ToString()+ '%'; 
@@ -235,7 +242,11 @@ namespace PC_HeatDemo
 
                 //
             }
+            else if (UpdataArr[0] == 'p')
+            {
+                stateBackParmFlag = true;
 
+            }
             if ((myStateByteArry[0] == 0x01) && (myStateByteArry[1] == 0x04))
             {
                 keyState = 0;
@@ -323,12 +334,12 @@ namespace PC_HeatDemo
 
 
 
-            }
+        }
 
         public Form1()
         {
             InitializeComponent();
-
+            
             string[] strarg = SerialPort.GetPortNames();//获得串口描述值
             ComPort.Items.Clear();//清除指令
             ComPort.Text = "";//清除文本
@@ -363,16 +374,10 @@ namespace PC_HeatDemo
             if (commflag_count > 0)
             {
                 count++;
-                ////ovalShape1.Enabled = true;
-                //if (count % 2 == 0)
-                //  //  ovalShape1.FillColor = Color.Green;
-                //else
-                //    ovalShape1.FillColor = Color.Black;
-
-
+          
             }
             else {
-                // ovalShape1.FillColor = Color.Black;
+                
 #if false
                 label_ChuKou.Text = "";
                 label_DianWeiQi.Text = "";
@@ -443,8 +448,8 @@ namespace PC_HeatDemo
                 //SetStateParmArry[7] = Convert.ToInt16(tB_SetFengShanPrm.Text);
                 for (int i = 0; i < 8; i++)
                 {
-                    mySetByteArry[2 + 2 * i] = (byte)(SetStateParmArry[i]%256);
-                    mySetByteArry[2 + 2 * i+1] = (byte)(SetStateParmArry[i] / 256);
+                    mySetByteArry[2 + 2 * i] = (byte)(SetStateParmArry[i] % 256);
+                    mySetByteArry[2 + 2 * i + 1] = (byte)(SetStateParmArry[i] / 256);
                 }
                 //int res = Crc16(mySetByteArry, 27);
                 mySetByteArry[18] = 0x0d;// (byte)(res % 256);
@@ -462,6 +467,30 @@ namespace PC_HeatDemo
                     stateSetParmFlag = false;
                 }
 
+            } else if (stateUpParmFlag)
+            {
+                mySetByteArry[0] = (byte)'p';
+                int txLength = SetUpParmArry[0] % 16;
+                mySetByteArry[1] = (byte)txLength;
+                for (int i = 0; i <=txLength; i++)
+                {
+                    mySetByteArry[2 + 2 * i] = (byte)(SetUpParmArry[i] % 256);
+                    mySetByteArry[2 + 2 * i + 1] = (byte)(SetUpParmArry[i] / 256);
+                }
+                mySetByteArry[4+2*txLength] = 0x0d;// (byte)(res % 256);
+                mySetByteArry[5+2*txLength] = 0x0a;// (byte)(res / 256);
+                if (sp.IsOpen)
+                {
+                    sp.Write(mySetByteArry, 0, 4+2*txLength);
+
+                }
+                stateUpParmFlag = false;
+                stateSetCount++;
+                if (stateSetCount > 5)
+                {
+                    lB_SetInfo.Text = "操作功能下发失败";
+                    stateUpParmFlag = false;
+                }
             }
             else
             {
@@ -483,10 +512,6 @@ namespace PC_HeatDemo
 
             }
 #endif
-            /*
-            ovalShape1.FillColor = Color.Red;
-            ovalShape1.Enabled = true;
-            */
             
         }
 
@@ -793,6 +818,74 @@ namespace PC_HeatDemo
         {
             keyState = 8;
             stateSendFlag = true;
+        }
+        
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Thread thParm = new Thread(ThreadSendParm);
+            thParm.Start(); //启动线程
+        }
+
+        private void ThreadSendParm()
+        {
+            //Thread.Sleep(1000);
+            //SendKeys.SendWait("{Enter}");
+
+            //textBox_Other.Text = "读heatparm.xel配置文件";
+            Console.WriteLine("已写+parmTxPostion:%d");
+            ReadExcel.ReadExcel readExcel = new ReadExcel.ReadExcel();
+            string projDirStr = Environment.CurrentDirectory;
+            Regex regex = new Regex("PC_GuiDemo");
+            Match mc = regex.Match(projDirStr);
+            int position = mc.Index;
+            string heatParmDir = projDirStr.Substring(0, position);
+            String filename = heatParmDir + "PC_GuiDemo" + "\\" + "heatparm.xlsx";
+            //Array arr = readExcel.ReadXlsSheetName(filename, "heatparm");//读参数配置表
+            //test
+            
+            int[] testArr = new int[20];
+            //testArr[0][0] = 70;
+            //Array arr = (Array)testArr[];
+            //rr ={ 70,5,1,23,44};
+            for (int i= 0;i< 20;i++)
+            {
+                testArr[i] = i;
+                //arr.SetValue(1,1);
+            }
+            int parmLength = testArr.Length;// arr.Length;
+            int parmTxPostion = 0;
+            //textBox_Other.Text = "读取配置信息成功，正在写数据";
+            stateBackParmFlag = true;
+            int countThread = 0;
+            while (parmTxPostion < parmLength)
+            {
+                while (!stateBackParmFlag)
+                {
+                    Thread.Sleep(100);
+                    countThread++;
+                    if (countThread > 10)
+                    {
+                        countThread = 0;
+                        stateUpParmFlag = true;//使能发送
+                    }
+
+                }
+                int i = 0;
+                for (; i < 7 && (parmTxPostion + i) < parmLength; i++)
+                {
+                    //double tmp = (double)arr.GetValue(parmTxPostion + i + 1, 1);//parmTxPostion++);
+                    UInt16 tmp =(UInt16) testArr[parmTxPostion+i];
+                    SetUpParmArry[i + 1] = (Int16)(tmp); //BitConverter.ToInt16(arr[parmTxPostion]);  // arr[parmTxPostion++];
+                }
+                SetUpParmArry[0] = (Int16)(parmTxPostion * 16 + i);
+
+                Console.WriteLine("已写+parmTxPostion:%d" + parmTxPostion);
+                parmTxPostion += i;
+                stateUpParmFlag = true;//使能发送
+                stateBackParmFlag = false;//等待回传成功
+            }
+           
+
         }
     }
 }

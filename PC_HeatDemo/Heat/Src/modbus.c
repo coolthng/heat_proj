@@ -1,4 +1,4 @@
-﻿#include "heat.h"
+#include "heat.h"
 
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 #else
@@ -175,7 +175,7 @@ void eMBInit(eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate
 #endif
 
 extern USHORT   usRegInputBuf[20];
-
+uint16_t HeatParmArr[100];
 void eMBPoll()
 {
 	static uint16_t res;
@@ -327,6 +327,34 @@ void eMBPoll()
 				TxArr[0] = 'o';
 				TxArr[1] = 'k';
 				TxArr[2] = NULL;
+
+#if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
+				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出
+				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//发出
+#else
+				RS485_TX;
+				HAL_Delay(5);
+				HAL_UART_Transmit_DMA_my(&huart1, TxArr, 2);
+
+#endif
+				break;
+			case 'p':
+				//RxArr[]//接收到的数组
+				uint16_t parmPostion = 0;
+				uint16_t parmLength = 0;
+				parmLength = RxArr[1];
+				parmPostion = RxArr[3] << 4 | RxArr[2] >> 4;
+				for (int i = 0; i < parmLength; i++)
+				{
+					HeatParmArr[parmPostion + i] = RxArr[4 + 2 * i] | RxArr[4 + 1 + 2 * i]<<8;
+				}
+				TxArr[0] = 'p';
+				TxArr[1] = RxArr[1];
+				TxArr[2] = RxArr[2];
+				TxArr[3] = RxArr[3];
+				TxArr[4] = 0x0d;
+				TxArr[5] = 0x0a;
+				TxArr[6] = NULL;
 
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出
