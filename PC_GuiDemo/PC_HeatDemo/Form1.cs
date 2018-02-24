@@ -12,6 +12,7 @@ using ReadExcel;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.IO;
+using System.Runtime.InteropServices;
 
 
 namespace PC_HeatDemo
@@ -33,11 +34,133 @@ namespace PC_HeatDemo
         bool stateBackParmFlag = false;//更新参数回传标志
         Int16[] SetStateParmArry = new Int16[10];
         Int16[] SetUpParmArry = new Int16[10];
-        
+      
         delegate void getstring(String mystring);//定义委托        
         getstring getmystring;///定义委托变量
         byte[] updata_temp = new byte[40];
         StreamWriter swHeatLogFile;
+        [StructLayout(LayoutKind.Sequential)]
+        //[StructLayout(LayoutKind.Explicit)]
+        public struct __HeatDis
+        {
+           
+            public byte comnd;
+            public byte reserved;
+            public byte parm1;
+            public byte parm2;
+            public byte StateMachineRun_s;
+            public byte JinKouTemp;
+            public UInt16 CurrentPrm;
+            public Int16 KeTiTemp;//10
+            public UInt16 PowerVolatge;//12
+            public UInt16 YouBengHz;//14
+            public Int16 resav3;//16
+            public Int16 resav4;//18
+            public byte tail1;
+            public byte tail2;
+
+            public byte AlarmState
+            {
+                get
+                {
+                    return (byte)(this.parm1 & 0x0f);
+                }
+                set
+                {
+                    this.parm1 = (byte)((this.parm1 & 0x0f) | (parm1 & 0xf0));
+                }
+            }
+            public byte StateMachine
+            {
+                get
+                {
+                    return (byte)(this.parm1 >> 4 & 0x0f);
+                }
+                set
+                {
+                    this.parm1 = (byte)((this.parm1 & 0x0f) | (parm1 & 0xf0));
+                }
+            }
+            public byte noused
+            {
+                get
+                {
+                    return (byte)(this.parm2 & 0x0f);
+                }
+                set
+                {
+                    this.parm2 = (byte)((this.parm2 & 0x0f) | (parm2 & 0xf0));
+                }
+            }
+            public byte StateRunLevel
+            {
+                get
+                {
+                    return (byte)(this.parm2 >> 4 & 0x0f);
+                }
+                set
+                {
+                    this.parm2 = (byte)((this.parm2 & 0x0f) | (parm2 & 0xf0));
+                }
+            }
+
+        };
+        public byte[] StructToBytes(object obj)
+        {
+            int rawsize = Marshal.SizeOf(obj);
+            IntPtr buffer = Marshal.AllocHGlobal(rawsize);
+            Marshal.StructureToPtr(obj, buffer, false);
+            byte[] rawdatas = new byte[rawsize];
+            Marshal.Copy(buffer, rawdatas, 0, rawsize);
+            Marshal.FreeHGlobal(buffer);
+            return rawdatas;
+        }
+
+        public object BytesToStruct(byte[] buf, int len, Type type)
+        {
+            object rtn;
+            IntPtr buffer = Marshal.AllocHGlobal(len);
+            Marshal.Copy(buf, 0, buffer, len);
+            rtn = Marshal.PtrToStructure(buffer, type);
+            Marshal.FreeHGlobal(buffer);
+            return rtn;
+        }
+
+        public void BytesToStruct(byte[] buf, int len, object rtn)
+        {
+            IntPtr buffer = Marshal.AllocHGlobal(len);
+            Marshal.Copy(buf, 0, buffer, len);
+            Marshal.PtrToStructure(buffer, rtn);
+            Marshal.FreeHGlobal(buffer);
+        }
+
+        public void BytesToStruct(byte[] buf, object rtn)
+        {
+            BytesToStruct(buf, buf.Length, rtn);
+        }
+
+        public object BytesToStruct(byte[] buf, Type type)
+        {
+            return BytesToStruct(buf, buf.Length, type);
+        }
+        __HeatDis heatDis = new __HeatDis();
+        private void button6_Click(object sender, EventArgs e)
+        {
+            byte[] test = new byte[20];
+            test[0] =(byte) 'a';
+            test[2] = 0xf;
+            test[3] = 0x3;
+            test[4] = 0x4;
+
+            
+            // BytesToStruct(test,20,heatDis);
+
+            //packet = (TGSGetDataRequest)BytesToStruct((byte[])buf, Marshal.SizeOf(packet), packet.GetType());
+            heatDis = (__HeatDis)BytesToStruct((byte[])test, Marshal.SizeOf(heatDis), heatDis.GetType());
+          
+            
+           
+        }
         private void DoUpdate()///希望被执行的函数（被委托）        
         {
             commflag_count = 5;
@@ -45,17 +168,15 @@ namespace PC_HeatDemo
             //01 04 09 22 34 00 22 00 33 00 44 71cB
             if ((UpdataArr[0] == 0x61) && (UpdataArr[1] == 0x00))
             {
+                heatDis = (__HeatDis)BytesToStruct((byte[])UpdataArr, Marshal.SizeOf(heatDis), heatDis.GetType());
                 string item_temp;
                 for (int i = 0; i < 24; i++)
                 {
                     updata_temp[i] = UpdataArr[i + 2];
 
                 }
-                //int temptest2 = updata_temp[0] / 16;
-                //label_MachineState.Text = temptest2.ToString();
-                //updata_temp[3] = 0xf0;
                 //状态机状态
-                switch (updata_temp[0] / 16)//高四位  状态机
+                switch(heatDis.StateMachine)
                 {
                     case 1:
                         label_MachineState.Text = "加热状态";
@@ -88,9 +209,7 @@ namespace PC_HeatDemo
                         label_MachineState.Text = "未知状态";
                         break;
                 }
-                //int temptest1=updata_temp[0] % 16;
-                //label_ErrorState.Text = temptest1.ToString();
-                switch (updata_temp[0] % 16)//低4位  故障状态
+                switch (heatDis.AlarmState)//低4位  故障状态
                 {
                     case 1:
                         label_ErrorState.Text = "poweroff";
@@ -138,9 +257,8 @@ namespace PC_HeatDemo
                     default:
                         break;
                 }
-
                 //档位
-                switch (updata_temp[1] / 16)//高四位档位  
+                switch (heatDis.StateRunLevel)//高四位档位  
                 {
                     case 1:
                         label_DianWeiQi.Text = "1档位";
@@ -161,7 +279,7 @@ namespace PC_HeatDemo
                         label_DianWeiQi.Text = "无档位调节";
                         break;
                 }
-                switch (updata_temp[1] % 16)//低四位  保留  
+                switch (heatDis.noused)//低四位  保留  
                 {
                     case 1:
                         break;
@@ -169,74 +287,26 @@ namespace PC_HeatDemo
                         break;
                 }
                 //运行时间
-                int int_run_time = updata_temp[2];// updata_temp[12] * 256 + updata_temp[13];
-                item_temp = int_run_time.ToString() + 's';
-                label_RunTime.Text = item_temp;
+                label_RunTime.Text = heatDis.StateMachineRun_s.ToString() + 's';
                 //电压
-
-
-                int int_dianya = BitConverter.ToUInt16(updata_temp, 14);//myStateByteArry[5] * 256 + myStateByteArry[6];
-                item_temp = Convert.ToString(int_dianya / 10) + '.' + Convert.ToString(int_dianya % 10) + 'V';
-                label_DianYuan.Text = item_temp;
+                label_DianYuan.Text = Convert.ToString(heatDis.PowerVolatge/100)+'.'+ Convert.ToString((heatDis.PowerVolatge % 100)/10)+Convert.ToString(heatDis.PowerVolatge % 10)+'V';  // item_temp;
                 //转速
-                int int_zhuansu = BitConverter.ToUInt16(updata_temp, 4);// updata_temp[5] * 256 + updata_temp[4];
-                item_temp = (int_zhuansu).ToString() + "RPM";
-                label_FengShan.Text = item_temp;
+                label_FengShan.Text = heatDis.CurrentPrm.ToString() + "RPM";// item_temp;
                 //壳体温度
-                int int_keti = BitConverter.ToUInt16(updata_temp, 6);// updata_temp[6] * 256 + updata_temp[7] - 200;//50基值  保证传递的是正数
-                item_temp = int_keti.ToString() + '℃';
-                label_KeTi.Text = item_temp;
+                label_KeTi.Text = heatDis.KeTiTemp.ToString() + '℃';
                 //火花塞调节占空比
-                int int_huosai_adj = BitConverter.ToUInt16(updata_temp, 8);// updata_temp[8] * 256 + updata_temp[9];
-                item_temp = int_huosai_adj.ToString() + '%';
-                label_HuoSai_Adj_Pre.Text = item_temp;
+                label_HuoSai_Adj_Pre.Text = "未显示";
                 //风扇调节占空比
-                int int_fengshan_adj = BitConverter.ToUInt16(updata_temp, 10);// updata_temp[10] * 256 + updata_temp[11];
-                item_temp = int_fengshan_adj.ToString() + '%';
-                label_FengShan_Adj_Pre.Text = item_temp;
-
-
-
+                label_FengShan_Adj_Pre.Text = "未显示";
 
                 //活塞占空比
-                //int int_huosai = updata_temp[14] * 256 + updata_temp[15];
-                //item_temp =int_huosai.ToString()+ '%'; 
-                //label_HuoSai_Pre.Text = item_temp;
+                label_HuoSai_Pre.Text = "未显示";
                 //风扇占空比
-                //int int_fengshan = updata_temp[16] * 256 + updata_temp[17];
-                //item_temp = int_fengshan.ToString() + '%';
-                //label_FengShan_Pre.Text = item_temp;
+                label_FengShan_Pre.Text = "未显示";
 
                 //油泵频率
-                int int_youbeng = updata_temp[19];
-                item_temp = Convert.ToString(int_youbeng / 10) + '.' + Convert.ToString(int_youbeng % 10) + "Hz";
-                label_YouBeng_Pre.Text = item_temp;
-                //工作模式
-                //switch (updata_temp[19])
-                //{
-                //    case 1:
-                //        label_work_mode.Text = "1KW模式";
-                //        break;
-                //    case 2:
-                //        label_work_mode.Text = "2KW模式";
-                //        break;
-                //    case 3:
-                //        label_work_mode.Text = "3KW模式";
-                //        break;
-                //    case 4:
-                //        label_work_mode.Text = "4KW模式";
-                //        break;
-                //    case 5:
-                //        label_work_mode.Text = "5KW模式";
-                //        break;
-                //    case 0x80:
-                //        label_work_mode.Text = "测试模式";
-                //        break;
-                //    default:
-                //        label_work_mode.Text = "模式错误";
-                //        break;
+                label_YouBeng_Pre.Text = Convert.ToString(heatDis.YouBengHz / 10) + '.' + Convert.ToString(heatDis.YouBengHz % 10) + "Hz";// item_temp;
 
-                //}
                 int int_huosai_FB = BitConverter.ToUInt16(updata_temp, 20);// updata_temp[20] * 256 + updata_temp[21];
                 label_JinKou.Text = int_huosai_FB.ToString();
 
@@ -934,5 +1004,7 @@ namespace PC_HeatDemo
                 swHeatLogFile.Close();
             }
         }
+
+       
     }
 }

@@ -1,4 +1,4 @@
-﻿#ifndef __MODBUS_H
+#ifndef __MODBUS_H
 #define __MODBUS_H
 
 #include "heat.h"
@@ -29,9 +29,9 @@ typedef enum
 	MB_PAR_EVEN                 /*!< Even parity. */
 } eMBParity;
 
-void eMBPoll();
+void CommPoll();
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-void eMBInit(eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity);
+void CommInit(eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity);
 #endif
 
 

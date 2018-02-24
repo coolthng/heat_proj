@@ -1,6 +1,14 @@
-﻿#include "parm.h"
+#include "parm.h"
 void PARM_Set(struct __PARM_HandleTypeDef * phparm)
 {
+
+	//start 新加参数
+	phparm->StartHeatKeTiTemp = 70;//默认70摄氏度
+	
+	phparm->HEAT_KETI_RISE_TEMP = 6;//// 加热模式，二次点火，点火成功判定  温度上升3度  即认为点火成功。  8会误判为不点火成功
+	phparm->HEAT_YB_StaticHz = 60;
+	phparm->HEAT_YB_DynamicParm = 70;
+	//end  新加参数
 	//start 加热参数
 	phparm->HEAT_FS_EN_Time = 0;
 
@@ -177,16 +185,14 @@ void PARM_Set(struct __PARM_HandleTypeDef * phparm)
 
 	//end stop模式参数
 
-	phparm->HEAT_STATE_KETI_RISE_TEMP = 6;//// 加热模式，二次点火，点火成功判定  温度上升3度  即认为点火成功。  8会误判为不点火成功
+	
 }
 
 
 
 void PARM_Init(struct __PARM_HandleTypeDef * phparm)
 {
-	phparm->StartHeatKeTiTemp = 70;//默认70摄氏度
-	phparm->HeatKeTiRiseTempSuc = 5;//默认5摄氏度
-
+	
 	phparm->ParmSet = PARM_Set;
 	phparm->FS_StartPrmPre = 5;
 	phparm->FS1000PrmPre = 15;

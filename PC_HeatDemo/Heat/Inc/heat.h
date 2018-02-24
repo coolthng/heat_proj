@@ -1,8 +1,8 @@
-﻿#ifndef __HEAT_H
+#ifndef __HEAT_H
 #define __HEAT_H
 #include "StateMachine.h"
 #include "PlateFormConfig.h"
-#include "modbus.h"
+#include "comm.h"
 #include "pwm.h"
 #include "adc.h"
 #include "time.h"
@@ -26,6 +26,34 @@ typedef struct out_s {
 	char state;
 
 }out_t;
+
+typedef union __HEAT_DIS
+{
+	struct st
+	{
+		uint8_t comnd;
+		uint8_t reserved;
+		uint8_t AlarmState : 4;
+		uint8_t StateMachine : 4;
+		uint8_t noused : 4;
+		uint8_t StateRunLevel : 4;
+		uint8_t StateMachineRun_s;
+		uint8_t JinKouTemp;
+		uint16_t CurrentPrm;
+		int16_t KeTiTemp;//10
+		uint16_t PowerVolatge;//12
+		uint16_t YouBengHz;//14
+		int16_t resav3;//16
+		int16_t resav4;//18
+		uint8_t tail1;
+		uint8_t tail2;
+
+	}st;
+
+
+	uint8_t un_uint8_t[20];
+
+}HEAT_DIS;
 
 typedef enum
 {
@@ -92,8 +120,7 @@ typedef struct __OUT_HandleTypeDef {
 	void(*OutInit)(struct __OUT_HandleTypeDef * phout); /* function pointer on Rx ISR */
 	void(*OutStart)(struct __OUT_HandleTypeDef * phout); /* function pointer on Rx ISR */
 	void(*OutStop)(struct __OUT_HandleTypeDef * phout); /* function pointer on Rx ISR */
-	
-	//void(*OutSetParm)(struct __HEAT_HandleTypeDef * pheat ); /* function pointer on Rx ISR */
+	void(*OutSetParm)(struct __HEAT_HandleTypeDef * pheat ); /* function pointer on Rx ISR */
 	//void(*STATE_Machine)();
 }OUT_HandleTypeDef;
 
@@ -106,29 +133,7 @@ typedef enum
 	SENSOR_STATE_ERROR,/**/
 
 }SENSOR_STATE_TypeDef;
-typedef struct __SENSOR_HandleTypeDef {
-	SENSOR_STATE_TypeDef SensorState;//输出状态
-	uint16_t SenTestPower;
-	uint16_t SenTestDianWeiQi;
-	uint16_t SenTestKeTi; 
-	uint16_t SenTestJinKou;
-	uint16_t SenTestChuKou;
-	uint16_t SenTestHuoSaiFb;
-	uint16_t SenTestYouBengFb;
 
-	void(*SenInit)(struct __SENSOR_HandleTypeDef * phsensor); /* function pointer on Rx ISR */
-	//int16_t (*SensorGetValue)(); /* function pointer on Rx ISR */
-	int16_t (*SenGetPowerVal)(); /* function pointer on Rx ISR */
-	int16_t (*SenGetKeTiVal)(); /* function pointer on Rx ISR */
-	int16_t (*SenGetJinKouVal)(); /* function pointer on Rx ISR */
-	int16_t (*SenGetChuKouVal)(); /* function pointer on Rx ISR */
-	int16_t (*SenGetYouBengFbVal)(); /* function pointer on Rx ISR */
-	int16_t (*SenGetHuoSaiFbVal)(); /* function pointer on Rx ISR */
-	int16_t(*SenGetStateRunVal)(); /* function pointer on Rx ISR */
-
-	//void(*OutStop)(struct __SENSOR_HandleTypeDef * phsensor); /* function pointer on Rx ISR */
-																											
-}SENSOR_HandleTypeDef;
 typedef struct
 {
 	uint8_t		Time_s;
@@ -205,8 +210,11 @@ typedef struct __PARM_HandleTypeDef {
 	void(*ParmInit)(struct __PARM_HandleTypeDef * phparm);
 	void(*ParmSet)(struct __PARM_HandleTypeDef * phparm);
 
-	uint8_t StartHeatKeTiTemp;//开始点火壳体温度，大于某一温度，需要吹凉后再点火
-	int8_t HeatKeTiRiseTempSuc;//点火成功标志
+	uint16_t StartHeatKeTiTemp;//开始点火壳体温度，大于某一温度，需要吹凉后再点火
+	
+	uint16_t HEAT_YB_StaticHz;//点火时油泵频率
+	uint16_t HEAT_YB_DynamicParm;//点火时油泵
+
 
 
 	uint8_t FS_StartPrmPre;
@@ -320,7 +328,7 @@ typedef struct __PARM_HandleTypeDef {
 	uint16_t STOP_HS_DIS_Time;
 
 	//end 启动参数化配置表
-	uint16_t HEAT_STATE_KETI_RISE_TEMP;
+	uint16_t HEAT_KETI_RISE_TEMP;
 
 }PARM_HandleTypeDef;
 typedef struct __HUOER_HandleTypeDef {
@@ -336,9 +344,9 @@ typedef struct __HEAT_HandleTypeDef {
 	int16_t StartKeTiTemp;
 	uint8_t HEAT2_KT_START_HEAT_Flag;
 	uint16_t HEAT2_KT_START_HEAT_Time;
-	void(*pPrintCurState)(struct __HEAT_HandleTypeDef * phheat);
+	
 	void(*pStateMachineInit)(struct __HEAT_HandleTypeDef * phheat);
-	void(*peMBPoll)();
+	void(*pCommPoll)();
 	void (*pStateMachineAdjest)(struct __HEAT_HandleTypeDef * phheat);
 	OUT_HandleTypeDef  hHuoSai;
 	//uint16_t huoSai_SetPre;//设置占空比
@@ -357,19 +365,6 @@ typedef struct __HEAT_HandleTypeDef {
 	OUT_HandleTypeDef  hYouBeng;
 	
 	//OUT_HandleTypeDef  *phYouBeng;
-	SENSOR_HandleTypeDef hSensor;
-	//SENSOR_HandleTypeDef hPower;
-	//SENSOR_HandleTypeDef *phPower;
-	//SENSOR_HandleTypeDef hKeTi;
-	//SENSOR_HandleTypeDef *phKeTi;
-	//SENSOR_HandleTypeDef hJinKou;
-	//SENSOR_HandleTypeDef *phJinKou;
-	//SENSOR_HandleTypeDef hChuKou;
-	//SENSOR_HandleTypeDef *phChuKou;
-	//SENSOR_HandleTypeDef hHuoSaiFb;
-	//SENSOR_HandleTypeDef *phHuoSaiFb;
-	//SENSOR_HandleTypeDef hYouBengFb;
-	//SENSOR_HandleTypeDef *phYouBengFb;
 	TIME_HandleTypeDef  hSysTime;
 	//TIME_HandleTypeDef  *phSysTime;
 	KEY_HandleTypeDef   hKey;
@@ -384,28 +379,43 @@ typedef struct __HEAT_HandleTypeDef {
 	uint16_t HW_Version;
 
 	int16_t JinKouTemp;
-	int16_t(*getJinKouTemp)(struct __HEAT_HandleTypeDef * phheat);
+	int16_t(*getjinKouTemp)();
 	
 	int16_t KeTiTemp;
-	int16_t(*getkeTiTemp)(struct __HEAT_HandleTypeDef * phheat);
+	int16_t(*getkeTiTemp)();
 
 	int16_t ChuKouTemp;
-	int16_t(*getchuKouTemp)(struct __HEAT_HandleTypeDef * phheat);
+	int16_t(*getchuKouTemp)();
+
+	int16_t UserSetTemp;
+	int16_t(*getuserSetTemp)();
 
 	uint16_t PowerVal_M100;
-	uint16_t(*getPowerVal)(struct __HEAT_HandleTypeDef * phheat);
+	uint16_t(*getPowerVal)();
 
-	uint16_t Prm;
+	uint16_t HsFbVal;
+	uint16_t(*getHsFbVal)();
+
+	uint16_t FsFbVal;
+	uint16_t(*getFsFbVal)();
+
+	uint16_t YbFbVal;
+	uint16_t(*getYbFbVal)();
+	
 	uint16_t YouBengHz;
 
-
-	uint16_t CurrentPrm;
-	uint16_t CurrentPrmTest;
 	
+	uint16_t CurrentPrm;//当前转速
+	uint16_t(*getHallFbVal)();
+	uint16_t CurrentPrmTest;
+	uint16_t CurrentYbHz;//当前油泵频率
+
 	uint16_t MyTest;
 
 	uint16_t TargetPrm;
 	uint16_t(*pSetFenShanPre)(int16_t adjust);
+	uint16_t(*pSetHsVolt)(uint16_t );
+	uint16_t(*pSetYbHz)(uint16_t );
 uint8_t test;
 uint32_t RunTime;
 	
@@ -430,6 +440,4 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat);
 void PrintCurrentState(struct __HEAT_HandleTypeDef *phheat);
 void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat);
 
-
-uint16_t SetPreFengShan(int16_t adjust);
 #endif

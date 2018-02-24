@@ -18,16 +18,8 @@ HEAT_HandleTypeDef *phheat;
 int main(void)
 {
 	
-	eMBInit(MB_RTU, 0x01, 1, 115200, MB_PAR_NONE);//modbus初始化
-#if 0//测试模式
-	while (1)
-	{
-		eMBPoll();
-		Sleep(100);
+	CommInit(MB_RTU, 0x01, 1, 115200, MB_PAR_NONE);//通信初始化
 
-	}
-#endif
-	
 
 	HEAT_Init(&hheat);
 	//start  测试函数
@@ -48,12 +40,11 @@ int main(void)
 	{
 		switch (hheat.StateMachine)
 		{
-
 		case STATE_MACHINE_POWER_OFF:
-			StateMachinePowerOff(&hheat);;
+			StateMachinePowerOff(&hheat);
 			break;
 		case STATE_MACHINE_NORMAL:
-			//StateMachineNormal(&hheat);
+			StateMachineNormal(&hheat);
 			break;
 		case STATE_MACHINE_WIND:
 			StateMachineWind(&hheat);
@@ -62,20 +53,17 @@ int main(void)
 			StateMachineHeat(&hheat);
 			break;
 		case STATE_MACHINE_STOP:
-			//StateMachineStop(&hheat);
+			StateMachineStop(&hheat);
 			break;
 		case STATE_MACHINE_HEAT2:
-			//StateMachineHeat2(&hheat);
+			StateMachineHeat2(&hheat);
 			break;
 		case STATE_MACHINE_IDEL:
 			StateMachineIdel(&hheat);
-			
 			break;
 		case STATE_MACHINE_DEBUG:
 			StateMachineDebug(&hheat);
-
 			break;
-		
 		default:
 			StateMachineIdel(&hheat);
 			break;

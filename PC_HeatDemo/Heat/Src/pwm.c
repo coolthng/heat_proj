@@ -1,4 +1,4 @@
-﻿
+
 #include "pwm.h"
 
 
@@ -40,7 +40,7 @@ void PWM_YouBengInit(struct __OUT_HandleTypeDef * phout)
 	phout->OutState = OUT_STATE_IDEL;
 	phout->OutStart = PWM_YouBengStart;
 	phout->OutStop = PWM_YouBengStop;
-//	phout->OutSetParm = PWM_YouBengSetParm;
+	phout->OutSetParm = PWM_YouBengSetParm;
 
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 	printf("You Beng Init \n");

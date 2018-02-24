@@ -21,16 +21,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Heat\Src\adc.c">
-      <Filter>Heat</Filter>
-    </ClCompile>
     <ClCompile Include="..\Heat\Src\alarm.c">
       <Filter>Heat</Filter>
     </ClCompile>
     <ClCompile Include="..\Heat\Src\heat.c">
-      <Filter>Heat</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Heat\Src\huoer.c">
       <Filter>Heat</Filter>
     </ClCompile>
     <ClCompile Include="..\Heat\Src\key.c">
@@ -51,10 +45,10 @@
     <ClCompile Include="..\PC_Heat\Src\main.c">
       <Filter>PC_Heat</Filter>
     </ClCompile>
-    <ClCompile Include="..\Heat\Src\modbus.c">
+    <ClCompile Include="..\Heat\Src\port.c">
       <Filter>Heat</Filter>
     </ClCompile>
-    <ClCompile Include="..\Heat\Src\port.c">
+    <ClCompile Include="..\Heat\Src\comm.c">
       <Filter>Heat</Filter>
     </ClCompile>
   </ItemGroup>

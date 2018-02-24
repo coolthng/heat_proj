@@ -1,4 +1,4 @@
-﻿
+
 #include "StateMachine.h"
 #include "heat.h"
 static OUT_HandleTypeDef  *pshHuoSai;
@@ -6,7 +6,6 @@ static OUT_HandleTypeDef  *pshFengShan;
 static OUT_HandleTypeDef  *pshYouBeng;
 static TIME_HandleTypeDef  *pshSysTime;
 static ALARM_HandleTypeDef *pshAlarm;
-static SENSOR_HandleTypeDef *pshSen;
 static PARM_HandleTypeDef *pshParm;
 
 
@@ -20,7 +19,6 @@ void StateMachineInit(struct __HEAT_HandleTypeDef *phheat)
 	pshHuoSai = &phheat->hHuoSai;
 	pshFengShan = &phheat->hFengShan;
 	pshYouBeng = &phheat->hYouBeng;
-	pshSen = &phheat->hSensor;
 	pshSysTime = &phheat->hSysTime;
 	pshParm = &phheat->hParm;
 }
@@ -52,10 +50,10 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 				pshSysTime->TimeReset(pshSysTime);
 				
 			}
-			phheat->pPrintCurState(phheat);//打印当前状态
+			
 			phheat->pStateMachineAdjest(phheat);
 		}
-		phheat->peMBPoll();//更新通信
+		phheat->pCommPoll();//更新通信
 		
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
@@ -93,8 +91,9 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 			return;
 			break;
 		case KEY_STATE_SW_2_HEAT_F_IDEL:
-			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//壳体温度过高进通风模式
+			if (phheat->KeTiTemp > pshAlarm->ALARM_NS_KeTiLowTemp)//壳体温度过高进通风模式
 			{
+				
 				phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
 				phheat->StateMachine = STATE_MACHINE_WIND;
 				phheat->StateMachineNext = STATE_MACHINE_HEAT;
@@ -174,10 +173,18 @@ void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat)
 
 		}
 	}
-
-
 	//end 调节风扇转速
-
+	//start 更新系统
+	phheat->KeTiTemp = phheat->getkeTiTemp();
+	phheat->JinKouTemp = phheat->getjinKouTemp();
+	phheat->ChuKouTemp = phheat->getchuKouTemp();
+	phheat->PowerVal_M100 = phheat->getPowerVal();
+	phheat->HsFbVal = phheat->getHsFbVal();
+	phheat->FsFbVal = phheat->getFsFbVal();
+	phheat->YbFbVal = phheat->getYbFbVal();
+	phheat->UserSetTemp = phheat->getuserSetTemp();
+	phheat->CurrentPrm = phheat->getHallFbVal();
+	//end 更新系统
 }
 void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 {
@@ -197,7 +204,7 @@ void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 
 			pshSysTime->StateMachineRun_s++;//系统运行时间计数
 
-			phheat->pPrintCurState(phheat);//打印当前状态
+			
 
 			
 			phheat->pStateMachineAdjest(phheat);
@@ -208,7 +215,7 @@ void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 		//phheat->pStateMachineAdjest(phheat);
 		}	
 		
-		phheat->peMBPoll();//更新通信
+		phheat->pCommPoll();//更新通信
 		
 		//start 按键操作
 		switch (phheat->hKey.KeyStateGetClear())
@@ -257,9 +264,9 @@ void StateMachineWind(struct __HEAT_HandleTypeDef *phheat)
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//打印当前状态
+			
 		}
-		phheat->peMBPoll();//更新通信
+		phheat->pCommPoll();//更新通信
 
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
@@ -276,7 +283,7 @@ void StateMachineWind(struct __HEAT_HandleTypeDef *phheat)
 			phheat->StateMachineNext = STATE_MACHINE_IDEL;
 			break;
 		case KEY_STATE_SW_2_HEAT_F_WIND:
-			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//壳体温度过高进通风模式
+			if (phheat->KeTiTemp > pshAlarm->ALARM_NS_KeTiLowTemp)//壳体温度过高进通风模式
 			{
 				phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
 				
@@ -307,7 +314,6 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 	pshFengShan->OutStart(pshFengShan);
 	pshYouBeng->OutStop(pshYouBeng);
 	pshSysTime->StateMachineRun_s = 0;//清空运行时间计数
-
 	while (1)//
 	{
 		if (pshSysTime->SysTime.Time_s_up_flag)//系统时间有秒更新标志  执行例行检查调节
@@ -315,7 +321,6 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			pshSysTime->SysTime.Time_s_up_flag = 0;
 			pshSysTime->StateMachineRun_s++;//系统运行时间计数
 			//start 风扇控制
-
 			if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D1.Stop_s)//60s
 			{
 				phheat->TargetPrm=FengShanAdjust_Prm(pshParm->HEAT_FS_D1.parm, phheat->TargetPrm, pshParm->HEAT_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
@@ -326,6 +331,14 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D3.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D3.Stop_s)//60s
 			{
 				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D3.parm, phheat->TargetPrm, pshParm->HEAT_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D4.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D4.Stop_s)//60s
+			{
+				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D4.parm, phheat->TargetPrm, pshParm->HEAT_FS_D4.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D5.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D5.Stop_s)//60s
+			{
+				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D5.parm, phheat->TargetPrm, pshParm->HEAT_FS_D5.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			//end 风扇控制
 			//start 火花塞控制
@@ -343,52 +356,39 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 				//i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->HEAT_HS_D2.Pre, pshHuoSai->curPre, pshParm->HEAT_HS_D2.Stop_s - pshSysTime->StateMachineRun_s);
 				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre, pshSen->SenGetPowerVal());
 			}
-			
 			//end 火花塞控制
 			//start 油泵控制
 			if (pshSysTime->StateMachineRun_s == pshParm->HEAT_YB_EN_Time)
 			{
-				switch (pshParm->ModeXkw)
-				{
-				case MODE_2KW:
-					//pshYouBeng->OutSetParm(phheat);//(pshYouBeng,100,10,240);
-					break;
-				case MODE_3KW:
-					//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, 130, 10, 240);
-					break;
-				case MODE_5KW:
-					////pshYouBeng->OutSetParm(phheat);//(pshYouBeng, 150, 10, 240);
-					break;
-				default:
-					//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, 100, 10, 240);
-					break;
-				}
-
+				phheat->pSetYbHz(pshParm->HEAT_YB_StaticHz);
 			}
 			if (pshSysTime->StateMachineRun_s > pshParm->HEAT_YB_ADJ_Time)
 			{
-				//pshYouBeng->OutSetParm(phheat);//(pshYouBeng,(int)((pshFengShan->curPre*100)/(pshParm->FS_PreToYB_Hz)),10,240);
+				phheat->pSetYbHz((phheat->CurrentPrm - 100) / pshParm->HEAT_YB_DynamicParm);
 			}
 			//end  油泵控制
 
 			//start 判断点火成功
+			//获得初始壳体温度
 			if (pshSysTime->StateMachineRun_s == pshParm->HEAT_KT_StartTime)
 			{
-				phheat->StartKeTiTemp = pshSen->SenGetKeTiVal();
+				phheat->StartKeTiTemp = phheat->KeTiTemp;
 			}
-			if (pshSysTime->StateMachineRun_s > pshParm->HEAT_KT_StartTime&&phheat->StartKeTiTemp > pshSen->SenGetKeTiVal())
+			//更新初始壳体温度，避免热机子会出现点火过程中壳体温度变低，只要壳体温度有升高就能判决成点火成功
+			if (pshSysTime->StateMachineRun_s > pshParm->HEAT_KT_StartTime&&phheat->StartKeTiTemp > phheat->KeTiTemp)
 			{
-				phheat->StartKeTiTemp = pshSen->SenGetKeTiVal();
+				phheat->StartKeTiTemp = phheat->KeTiTemp;
 			}
+			//点火是否成功判决
 			if (pshSysTime->StateMachineRun_s > pshParm->HEAT_KT_JudgeTime)
 			{
-				if (pshSen->SenGetKeTiVal() > (pshParm->HEAT_STATE_KETI_RISE_TEMP + phheat->StartKeTiTemp))
+				if (phheat->KeTiTemp > (pshParm->HEAT_KETI_RISE_TEMP + phheat->StartKeTiTemp))
 				{
-					phheat->StateMachine = STATE_MACHINE_NORMAL;
+					phheat->StateMachine = STATE_MACHINE_NORMAL;//点火成功
 					return;
 				}
 				else {
-					phheat->StateMachine = STATE_MACHINE_HEAT2;
+					phheat->StateMachine = STATE_MACHINE_HEAT2;//点火失败  二次点火
 					return;
 				}
 			}
@@ -397,38 +397,36 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
-
 			}
-			phheat->pPrintCurState(phheat);//打印当前状态
+			
 			phheat->pStateMachineAdjest(phheat);
-		}
-		phheat->peMBPoll();//更新通信
+		}//if (pshSysTime->SysTime.Time_s_up_flag)
+		phheat->pCommPoll();//更新通信
 
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
 
 		}
-		//start 按键操作
+		//start 按键判决操作
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
 			break;
 		case KEY_STATE_STOP:
 			phheat->StateMachineNext = STATE_MACHINE_IDEL;
-			if (pshSysTime->StateMachineRun_s < pshParm->HEAT_YB_EN_Time)
+			if (pshSysTime->StateMachineRun_s > pshParm->HEAT_YB_EN_Time)
 			{
-				phheat->StateMachine = STATE_MACHINE_POWER_OFF;
+				phheat->StateMachine = STATE_MACHINE_STOP;
 				return;
 			}
 			else {
-				phheat->StateMachine = STATE_MACHINE_STOP;
+				phheat->StateMachine = STATE_MACHINE_POWER_OFF;
 				return;
 			}
 			break;
 		case KEY_STATE_AUTO_OIL:
 			phheat->StateMachine = STATE_MACHINE_AUTO_OIL;
 			return;
-			
 			break;
 		case KEY_STATE_TEST:
 			phheat->StateMachine = STATE_MACHINE_TEST;
@@ -436,14 +434,11 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			break;
 		default:
 			break;
-
 		}
-		//end  按键操作
+		//end  按键判决操作
 		pshAlarm->AlarmCheck(pshAlarm);//故障检查
-
-	}
-
-}
+	}//end while(1)
+}//end heat
 
 void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 {
@@ -522,20 +517,20 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 				//end  油泵控制
 			}
 			//start 判断点火成功
-			if ((!(phheat->HEAT2_KT_START_HEAT_Flag)) && pshSen->SenGetKeTiVal() < pshParm->HEAT2_KT_DROPDOWN_START_HEAT&&pshSysTime->StateMachineRun_s > pshParm->HEAT2_START_HEAT_Time)
+			if ((!(phheat->HEAT2_KT_START_HEAT_Flag)) && phheat->KeTiTemp < pshParm->HEAT2_KT_DROPDOWN_START_HEAT&&pshSysTime->StateMachineRun_s > pshParm->HEAT2_START_HEAT_Time)
 			{
-				phheat->StartKeTiTemp= pshSen->SenGetKeTiVal();
+				phheat->StartKeTiTemp= phheat->KeTiTemp;
 				phheat->HEAT2_KT_START_HEAT_Time = pshSysTime->StateMachineRun_s;
 				phheat->HEAT2_KT_START_HEAT_Flag = 1;
 
 			}
 			if (phheat->HEAT2_KT_START_HEAT_Flag&&pshSysTime->StateMachineRun_s>(phheat->HEAT2_KT_START_HEAT_Time+pshParm->HEAT2_KT_HeatOffJudgeTime))
 			{
-				if (phheat->StartKeTiTemp > pshSen->SenGetKeTiVal())
+				if (phheat->StartKeTiTemp > phheat->KeTiTemp)
 				{
-					phheat->StartKeTiTemp = pshSen->SenGetKeTiVal();
+					phheat->StartKeTiTemp = phheat->KeTiTemp;
 				}
-				if(pshSysTime->StateMachineRun_s>(phheat->HEAT2_KT_START_HEAT_Time + pshParm->HEAT2_KT_HeatOffJudgeTime)&&pshSen->SenGetKeTiVal()>(phheat->StartKeTiTemp+pshParm->HEAT_STATE_KETI_RISE_TEMP))
+				if(pshSysTime->StateMachineRun_s>(phheat->HEAT2_KT_START_HEAT_Time + pshParm->HEAT2_KT_HeatOffJudgeTime)&&phheat->KeTiTemp>(phheat->StartKeTiTemp+pshParm->HEAT_KETI_RISE_TEMP))
 				{
 					phheat->StateMachine = STATE_MACHINE_NORMAL;
 					return;
@@ -548,15 +543,15 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 
 			if (pshSysTime->StateMachineRun_s == 100)
 			{
-				phheat->StartKeTiTemp = pshSen->SenGetKeTiVal();
+				phheat->StartKeTiTemp = phheat->KeTiTemp;
 			}
-			if (pshSysTime->StateMachineRun_s > 100&&phheat->StartKeTiTemp > pshSen->SenGetKeTiVal())
+			if (pshSysTime->StateMachineRun_s > 100&&phheat->StartKeTiTemp > phheat->KeTiTemp)
 			{
-				phheat->StartKeTiTemp = pshSen->SenGetKeTiVal();
+				phheat->StartKeTiTemp = phheat->KeTiTemp;
 			}
 			if (pshSysTime->StateMachineRun_s > 210)
 			{
-				if (pshSen->SenGetKeTiVal() > (pshParm->HEAT_STATE_KETI_RISE_TEMP + phheat->StartKeTiTemp))
+				if (phheat->KeTiTemp > (pshParm->HEAT_KETI_RISE_TEMP + phheat->StartKeTiTemp))
 				{
 					phheat->StateMachine = STATE_MACHINE_NORMAL;
 					return;
@@ -573,9 +568,9 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//打印当前状态
+			
 		}
-		phheat->peMBPoll();//更新通信
+		phheat->pCommPoll();//更新通信
 
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
@@ -667,8 +662,9 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 					{
 					case STATE_RUN_LEVEL_1:
 						//start 降档判断
-						if (pshSen->SenGetJinKouVal()>( pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare+ pshSen->SenGetStateRunVal()))//大于3度开始调节
+						if (phheat->JinKouTemp>( pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare+ phheat->UserSetTemp))//大于3度开始调节
 						{
+							
 							l_jinkou_over_dianweiqi_continue_count_s++;
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
 #if(DEBUG_MODE==1)
@@ -692,7 +688,7 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 						}
 						//end  降档判断
 						//start 升档判断
-						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare  + pshSen->SenGetJinKouVal()))//升档条件判断
+						if (phheat->UserSetTemp>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare  + phheat->JinKouTemp))//升档条件判断
 						{
 							l_dianweiqi_over_jinkou_continue_count_s++;
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
@@ -716,7 +712,7 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 						break;
 					case STATE_RUN_LEVEL_2:
 						//start 降档判断
-						if (pshSen->SenGetJinKouVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetStateRunVal()))//大于3度开始调节
+						if (phheat->JinKouTemp>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + phheat->UserSetTemp))//大于3度开始调节
 						{
 							l_jinkou_over_dianweiqi_continue_count_s++;
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
@@ -741,7 +737,7 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 						}
 						//end  降档判断
 						//start 升档判断
-						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetJinKouVal()))//升档条件判断
+						if (phheat->UserSetTemp>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + phheat->JinKouTemp))//升档条件判断
 						{
 							l_dianweiqi_over_jinkou_continue_count_s++;
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
@@ -765,7 +761,7 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 						break;
 					case STATE_RUN_LEVEL_3:
 						//start 降档判断
-						if (pshSen->SenGetJinKouVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetStateRunVal()))//大于3度开始调节
+						if (phheat->JinKouTemp>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + phheat->UserSetTemp))//大于3度开始调节
 						{
 							l_jinkou_over_dianweiqi_continue_count_s++;
 							l_dianweiqi_over_jinkou_continue_count_s = 0;
@@ -790,7 +786,7 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 						}
 						//end  降档判断
 						//start 升档判断
-						if (pshSen->SenGetStateRunVal()>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + pshSen->SenGetJinKouVal()))//升档条件判断
+						if (phheat->UserSetTemp>(pshParm->NORMAL_DWQ_JK_TEMP_Cpmpare + phheat->JinKouTemp))//升档条件判断
 						{
 							l_dianweiqi_over_jinkou_continue_count_s++;
 							l_jinkou_over_dianweiqi_continue_count_s = 0;
@@ -873,14 +869,14 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 		
 			if ((pshSysTime->StateMachineRun_s == 0) || (pshSysTime->StateMachineRun_s == 30))//每30s执行1次
 			{
-				l_KeTi_Temp_Old[l_Count_30s] = pshSen->SenGetKeTiVal();// s_KeTiTemp;
-				l_ChuKou_Temp_Old[l_Count_30s++] = pshSen->SenGetChuKouVal();//s_ChuKouTemp;//将出口变量存储到数组中
+				l_KeTi_Temp_Old[l_Count_30s] = phheat->KeTiTemp;// s_KeTiTemp;
+				l_ChuKou_Temp_Old[l_Count_30s++] = phheat->ChuKouTemp;//s_ChuKouTemp;//将出口变量存储到数组中
 				if (l_Count_30s == NORMAL_STATE_CHUKOU_TEMP_DELAY_30S)
 				{
 					l_Count_30s = 0;
 				}
 			}
-			if (pshSysTime->StateMachineRun_s >pshParm->NORMAL_STATE_HEAT_OUT_JUDGE_Time && pshSen->SenGetKeTiVal() <pshParm-> NORMAL_STATE_HEAT_OUT_JUDGE_KeTiTemp)//时间>5min，壳体小于40度，判定为灭火
+			if (pshSysTime->StateMachineRun_s >pshParm->NORMAL_STATE_HEAT_OUT_JUDGE_Time && phheat->KeTiTemp <pshParm-> NORMAL_STATE_HEAT_OUT_JUDGE_KeTiTemp)//时间>5min，壳体小于40度，判定为灭火
 			{
 				phheat->StateMachine = STATE_MACHINE_HEAT2;//切换到二次点火模式
 				return;
@@ -889,7 +885,7 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 			for (i = 0; i<NORMAL_STATE_CHUKOU_TEMP_DELAY_30S; i++)//实时比较当前
 			{
 			
-				if (l_ChuKou_Temp_Old[i]>(pshSen->SenGetChuKouVal() +pshParm->NORMAL_STATE_CHUKOU_DROPDOWN_Temp) && l_KeTi_Temp_Old[i]>(pshSen->SenGetKeTiVal() +pshParm->NORMAL_STATE_KETI_DROPDOWN_Temp))
+				if (l_ChuKou_Temp_Old[i]>(phheat->ChuKouTemp +pshParm->NORMAL_STATE_CHUKOU_DROPDOWN_Temp) && l_KeTi_Temp_Old[i]>(phheat->KeTiTemp +pshParm->NORMAL_STATE_KETI_DROPDOWN_Temp))
 				{
 					phheat->StateMachine = STATE_MACHINE_HEAT2;//切换到二次点火模式
 					return;
@@ -902,9 +898,9 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//打印当前状态
+			
 		}//end  if (pshSysTime->SysTime.Time_s_up_flag)//系统时间有秒更新标志  执行例行检查调节
-		phheat->peMBPoll();//更新通信
+		phheat->pCommPoll();//更新通信
 
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
@@ -975,7 +971,7 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 
 			//start 壳体温度判断关机
 			
-			if (( pshSen->SenGetKeTiVal()< 50) && (pshSysTime->StateMachineRun_s>pshParm->STOP_HS_DIS_Time))
+			if (( phheat->KeTiTemp< 50) && (pshSysTime->StateMachineRun_s>pshParm->STOP_HS_DIS_Time))
 			{
 				phheat->StateMachine = STATE_MACHINE_POWER_OFF;
 				return;
@@ -988,9 +984,9 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//打印当前状态
+			
 		}
-		phheat->peMBPoll();//更新通信
+		phheat->pCommPoll();//更新通信
 
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
@@ -1007,7 +1003,7 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 			phheat->StateMachineNext = STATE_MACHINE_IDEL;
 			break;
 		case KEY_STATE_SW_2_HEAT_F_WIND:
-			if (pshSen->SenGetKeTiVal() > pshAlarm->ALARM_NS_KeTiLowTemp)//壳体温度过高进通风模式
+			if (phheat->KeTiTemp > pshAlarm->ALARM_NS_KeTiLowTemp)//壳体温度过高进通风模式
 			{
 				phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
 
@@ -1057,9 +1053,9 @@ void StateMachinePowerOff(struct __HEAT_HandleTypeDef *phheat)
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			phheat->pPrintCurState(phheat);//打印当前状态
+			
 		}
-		phheat->peMBPoll();//更新通信
+		phheat->pCommPoll();//更新通信
 
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
@@ -1121,107 +1117,6 @@ uint16_t FengShanAdjust_Prm(uint16_t target_prm, uint16_t current_prm, uint16_t 
 	else {
 		return (current_prm + (target_prm - current_prm) / remain_time);
 	}
-}
-//打印当前状态。
-void PrintCurrentState(struct __HEAT_HandleTypeDef *phheat)
-{
-
-#if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-#else
-
-	//extern uint32_t HuoErInput[100];
-	//static uint32_t CapValue = 0;
-	//#if 0
-	//if (HuoErInput[0]<HuoErInput[1])
-	//{
-	//	CapValue = HuoErInput[1] - HuoErInput[0];
-	//}
-	//else {
-	//	CapValue = 0xffff + HuoErInput[1] - HuoErInput[0];
-
-	//}
-	//phheat->CurrentPrm=(100000.0 * 60)/CapValue;
-	//#endif
-	//#if true
-	//CapValue=0;
-	//static uint8_t overflag=0;
-	//for(int i=0;i<HUO_ER_INPUT_LENGTH;i++)
-	//{
-	//	if(HuoErInput[i]>0xffff)
-	//	{
-	//		overflag=1;
-	//	break;
-	//	}
-	//CapValue+=HuoErInput[i];
-	//	
-	//}
-	//if(overflag)
-	//{
-	//phheat->CurrentPrm=0;
-	//	overflag=0;
-	//}else
-	//{
-	////CapValue=CapValue/HUO_ER_INPUT_LENGTH;
-	//phheat->CurrentPrm=(100000.0 * 60*HUO_ER_INPUT_LENGTH)/CapValue;
-	//}
-
-	//#endif
-#endif
-
-
-
-	//获得当前状态
-	//static  STATE_TypeDef  l_state_machine;
-	/*uint8_t temp1 = 0;
-	uint8_t temp2 = 0;
-	uint8_t temp3 = 0;
-	uint8_t temp4 = 0;
-	uint8_t temp = 0;
-
-	int16_t temp_uint16_t;*/
-	////状态切换  故障
-	////l_state_machine = STATE_GetNextState();//STATE_GetState();//调整20161022
-	//temp1 = phheat->StateMachine;//phheat->StateMachineNext;//0;// l_state_machine;
-	//temp2 = phheat->hAlarm.AlarmState;// phheat->hAlarm.//ALARM_State_Get();
-	//temp3 = (temp1 << 4) | temp2;
-	////正常状态  档位 +保留
-	//temp1 = phheat->StateRunLevel;//0;//g_Level_Flag;//Get_DianWeiQi_Tempreture();
-	//temp2 = phheat->StateMachineNext; //0;
-	//temp4 = (temp1 << 4) | temp2;
-	//usRegInputBuf[0] = (temp3 << 8) | temp4;
-	////电压
-	//temp_uint16_t = phheat->PowerVal_M100;//phheat->hSensor.SenGetPowerVal();//(uint16_t)Get_Power_VolotageMUL10();
-	//usRegInputBuf[1] = temp_uint16_t;
-	////转速
-	//temp_uint16_t = phheat->hHuoer.HuoerGetRpm();// phheat->hSensor.SenGetJinKouVal();//Get_JinKou_Tempreture();//HUOER_GetRPM();
-	//usRegInputBuf[2] = temp_uint16_t;
-	////壳体温度
-	//temp_uint16_t = phheat->hSensor.SenGetKeTiVal()+200;//Get_KeTi_Tempreture() + 200;
-	//usRegInputBuf[3] = temp_uint16_t;
-	////火花塞调节占空比
-	//temp_uint16_t = phheat->hHuoSai.curPre;// 0;// PWM_HuoSai_Get_Adj_Pre();
-	//usRegInputBuf[4] = temp_uint16_t;
-	////风扇调节占空比
-	//temp_uint16_t = phheat->hFengShan.curPre;//0;// PWM_FengShan_Get_Adj_Pre();
-	//usRegInputBuf[5] = temp_uint16_t;
-	////运行时间
-	//temp_uint16_t = phheat->hSysTime.StateMachineRun_s;//(uint16_t)run_time;
-	//usRegInputBuf[6] = temp_uint16_t;
-	////火花塞占空比
-	//temp_uint16_t = phheat->hHuoSai.curPre;//0;// PWM_HuoSaiGet_Percentage();
-	//usRegInputBuf[7] = temp_uint16_t;
-	////风扇占空比
-	//temp_uint16_t = phheat->hFengShan.curPre;//0;// PWM_FengShanGet_Percentage();
-	//usRegInputBuf[8] = temp_uint16_t;
-	////油泵频率
-	//temp3 = phheat->hYouBeng.curPre/10;//0;// PWM_YouBengGet_MUL100_Hz() / 10;
-
-	//temp4 = phheat->hParm.ModeXkw;//0;// g_StateMode;//工作模式
-	//usRegInputBuf[9] = (temp3 << 8) | temp4;
-	//usRegInputBuf[10] = phheat->hSensor.SenGetHuoSaiFbVal();//Get_Huosai_feedback_Vtge();//ADC_Conversion_Value[0][1]; //
-	//usRegInputBuf[11] = phheat->hSensor.SenGetChuKouVal();// phheat->hSensor.SenGetYouBengFbVal();//Get_YouBeng_feedback_Vtge();
-	////usRegInputBuf[12] = phheat->hSensor.SenGetYouBengFbVal();
-
 }
 
 
