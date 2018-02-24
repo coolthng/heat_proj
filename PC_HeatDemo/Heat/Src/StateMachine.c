@@ -37,6 +37,8 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 	pshSysTime->StateMachineRun_s = 0;//清空运行时间计数
 	phheat->TargetPrm = 0;
 	
+	
+	
 	while (1)//
 	{
 		if (pshSysTime->SysTime.Time_s_up_flag)//系统时间有秒更新标志  执行例行检查调节
@@ -54,6 +56,7 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 			phheat->pStateMachineAdjest(phheat);
 		}
 		phheat->pCommPoll();//更新通信
+		phheat->pStateMachineUpdate(phheat);//更新系统
 		
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
@@ -122,7 +125,7 @@ void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat)
 {
 	//start 开始调节风扇转速
 	static uint8_t HighPrmFlag=0;
-	if(phheat->TargetPrm>800)
+	if(phheat->TargetPrm>800|phheat->TargetPrm==0)
 	{
 	 HighPrmFlag=1;
 	}else
@@ -174,6 +177,10 @@ void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat)
 		}
 	}
 	//end 调节风扇转速
+	
+}
+void StateMachineUpdate(struct __HEAT_HandleTypeDef *phheat)
+{
 	//start 更新系统
 	phheat->KeTiTemp = phheat->getkeTiTemp();
 	phheat->JinKouTemp = phheat->getjinKouTemp();
@@ -183,8 +190,9 @@ void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat)
 	phheat->FsFbVal = phheat->getFsFbVal();
 	phheat->YbFbVal = phheat->getYbFbVal();
 	phheat->UserSetTemp = phheat->getuserSetTemp();
-	phheat->CurrentPrm = phheat->getHallFbVal();
+	phheat->CurrentPrm = 	phheat->getHallFbVal();
 	//end 更新系统
+	
 }
 void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 {
@@ -204,9 +212,6 @@ void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 
 			pshSysTime->StateMachineRun_s++;//系统运行时间计数
 
-			
-
-			
 			phheat->pStateMachineAdjest(phheat);
 		}
 		if (pshSysTime->SysTime.Time_100ms_up_flag)
@@ -216,7 +221,7 @@ void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 		}	
 		
 		phheat->pCommPoll();//更新通信
-		
+		phheat->pStateMachineUpdate(phheat);//更新系统
 		//start 按键操作
 		switch (phheat->hKey.KeyStateGetClear())
 		{
@@ -402,7 +407,8 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			phheat->pStateMachineAdjest(phheat);
 		}//if (pshSysTime->SysTime.Time_s_up_flag)
 		phheat->pCommPoll();//更新通信
-
+		phheat->pStateMachineUpdate(phheat);//更新系统
+		
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
 

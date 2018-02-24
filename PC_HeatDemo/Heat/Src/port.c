@@ -1,7 +1,15 @@
 #include "heat.h"
+
+
 extern HEAT_HandleTypeDef hheat;
 
+#if  (PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 #define DEBUG_PRINT(x)    printf(x)  //NULL
+#else
+#include "stm32f0xx_hal.h"
+extern TIM_HandleTypeDef htim17;
+#define DEBUG_PRINT(x)   NULL
+#endif
 int16_t PTgetJinKouTemp()
 {
 	//添加进口获取进口温度
@@ -55,7 +63,20 @@ uint16_t PTgetHallFbVal()
 #if  (PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 	return hheat.TargetPrm;
 #else
-	return 100;
+	
+	extern uint32_t HuoErInput[10];
+	static uint32_t CapValue=0;
+	for(int i=0;i<HUO_ER_INPUT_LENGTH;i++)
+	{
+		CapValue+=HuoErInput[i];
+		if(HuoErInput[i]>0xfffffff)
+		return 0;
+	}
+	CapValue=CapValue>>2;
+	//hheat.CurrentPrm=(100000.0 * 60 * HUO_ER_INPUT_LENGTH)/CapValue;
+	//hheat.CurrentPrm=(100000.0 * 60)/CapValue;
+	return (uint16_t)((100000.0 * 60)/CapValue);//(uint16_t)((100000 * 60)/HuoErInput[0]);/////(uint16_t)((100000.0 * 60*HUO_ER_INPUT_LENGTH)/CapValue);
+	
 #endif
 	
 }
@@ -71,13 +92,14 @@ uint16_t PTsetPreFengShan(int16_t adjust)
 {
 	static int16_t current_pre = 0;
 	current_pre += adjust;
-	if (current_pre < 0)
+	if (current_pre < 10)
 		current_pre = 0;
 #if  (PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 	hheat.CurrentPrm = current_pre;
 	hheat.CurrentPrmTest = current_pre;
 	printf("当前转速:%d,adjust:%d\n", hheat.CurrentPrm, adjust);
 #else
+
 	hheat.CurrentPrmTest = current_pre;
 	htim17.Instance->CCR1 = current_pre;
 #endif

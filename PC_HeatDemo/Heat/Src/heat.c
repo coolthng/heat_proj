@@ -65,6 +65,7 @@ phheat->pStateMachineInit(phheat);
 
 	phheat->pCommPoll = CommPoll;//485通信
 	phheat->pStateMachineAdjest = StateMachineAdjust;
+	phheat->pStateMachineUpdate = StateMachineUpdate;
 	phheat->pSetFenShanPre = PTsetPreFengShan;
 	phheat->pSetHsVolt = PTsetHsVolt;
 	phheat->pSetYbHz = PTsetYbHz;
@@ -78,6 +79,50 @@ phheat->pStateMachineInit(phheat);
 	
 	return HEAT_OK;
 
+}
+
+void HEAT_Poll(HEAT_HandleTypeDef *phheat)
+{
+	phheat->StateMachine = STATE_MACHINE_IDEL;//置位为空状态
+	phheat->StateMachineNext = STATE_MACHINE_IDEL;
+
+	while(0)
+	{
+	phheat->pCommPoll();
+	}
+	while (1)
+	{
+		switch (phheat->StateMachine)
+		{
+		case STATE_MACHINE_POWER_OFF:
+			StateMachinePowerOff(phheat);
+			break;
+		case STATE_MACHINE_NORMAL:
+			StateMachineNormal(phheat);
+			break;
+		case STATE_MACHINE_WIND:
+			StateMachineWind(phheat);
+			break;
+		case STATE_MACHINE_HEAT:
+			StateMachineHeat(phheat);
+			break;
+		case STATE_MACHINE_STOP:
+			StateMachineStop(phheat);
+			break;
+		case STATE_MACHINE_HEAT2:
+			StateMachineHeat2(phheat);
+			break;
+		case STATE_MACHINE_IDEL:
+			StateMachineIdel(phheat);
+			break;
+		case STATE_MACHINE_DEBUG:
+			StateMachineDebug(phheat);
+			break;
+		default:
+			StateMachineIdel(phheat);
+			break;
+		}
+	}
 }
 
 

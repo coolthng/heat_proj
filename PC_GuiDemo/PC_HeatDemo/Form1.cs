@@ -306,12 +306,10 @@ namespace PC_HeatDemo
 
                 //油泵频率
                 label_YouBeng_Pre.Text = Convert.ToString(heatDis.YouBengHz / 10) + '.' + Convert.ToString(heatDis.YouBengHz % 10) + "Hz";// item_temp;
-
-                int int_huosai_FB = BitConverter.ToUInt16(updata_temp, 20);// updata_temp[20] * 256 + updata_temp[21];
-                label_JinKou.Text = int_huosai_FB.ToString();
-
-                int int_youbeng_FB = BitConverter.ToUInt16(updata_temp, 22);// updata_temp[22] * 256 + updata_temp[23];
-                label_ChuKou.Text = int_youbeng_FB.ToString();
+                //火花塞反馈
+                label_JinKou.Text = heatDis.resav3.ToString();
+                //油泵反馈
+                label_ChuKou.Text = heatDis.resav4.ToString();
 
                 //
                 //start recond log

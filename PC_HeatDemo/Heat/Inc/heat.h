@@ -348,6 +348,7 @@ typedef struct __HEAT_HandleTypeDef {
 	void(*pStateMachineInit)(struct __HEAT_HandleTypeDef * phheat);
 	void(*pCommPoll)();
 	void (*pStateMachineAdjest)(struct __HEAT_HandleTypeDef * phheat);
+	void (*pStateMachineUpdate)(struct __HEAT_HandleTypeDef * phheat);
 	OUT_HandleTypeDef  hHuoSai;
 	//uint16_t huoSai_SetPre;//设置占空比
 	//uint16_t huoSai_CurPre;//调试用

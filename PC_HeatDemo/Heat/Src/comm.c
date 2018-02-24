@@ -61,10 +61,6 @@ void CommInit(eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRat
 	
 }
 #else
-//void eMBInit(eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity)
-//{
-
-//}
 #endif
 
 extern USHORT   usRegInputBuf[20];
@@ -108,7 +104,7 @@ void CommPoll()
 			break;
 		}
 	} while (bReadStat);
-	//hheat.RunTime++;
+	
 	hheat.hSysTime.SysTime.Time_s_up_flag = 1;
 #else
 	extern uint8_t RxArrFlag;
@@ -138,6 +134,8 @@ void CommPoll()
 				heatDis.st.KeTiTemp= hheat.KeTiTemp;
 				heatDis.st.PowerVolatge = hheat.PowerVal_M100;
 				heatDis.st.YouBengHz = hheat.CurrentYbHz;
+				heatDis.st.resav3 =hheat.CurrentPrmTest;//hheat.MyTest;
+				heatDis.st.resav4 = hheat.TargetPrm;
 				heatDis.st.tail1 = 0x0d;
 				heatDis.st.tail2 = 0x0a;
 
