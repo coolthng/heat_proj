@@ -92,13 +92,18 @@ void HEAT_Poll(HEAT_HandleTypeDef *phheat)
 	}
 	while (1)
 	{
+		if (phheat->StateMachineNext < STATE_MACHINE_IDEL)
+		{
+			phheat->StateMachine = phheat->StateMachineNext;
+			phheat->StateMachineNext = STATE_MACHINE_IDEL;
+		}
 		switch (phheat->StateMachine)
 		{
 		case STATE_MACHINE_POWER_OFF:
 			StateMachinePowerOff(phheat);
 			break;
 		case STATE_MACHINE_NORMAL:
-			StateMachineNormal(phheat);
+			//StateMachineNormal(phheat);
 			break;
 		case STATE_MACHINE_WIND:
 			StateMachineWind(phheat);

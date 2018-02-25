@@ -45,7 +45,7 @@ namespace PC_HeatDemo
         {
            
             public byte comnd;
-            public byte reserved;
+            public byte HsVoltage;
             public byte parm1;
             public byte parm2;
             public byte StateMachineRun_s;
@@ -166,7 +166,7 @@ namespace PC_HeatDemo
             commflag_count = 5;
 
             //01 04 09 22 34 00 22 00 33 00 44 71cB
-            if ((UpdataArr[0] == 0x61) && (UpdataArr[1] == 0x00))
+            if (UpdataArr[0] == 0x61)
             {
                 heatDis = (__HeatDis)BytesToStruct((byte[])UpdataArr, Marshal.SizeOf(heatDis), heatDis.GetType());
                 string item_temp;
@@ -300,7 +300,7 @@ namespace PC_HeatDemo
                 label_FengShan_Adj_Pre.Text = "未显示";
 
                 //活塞占空比
-                label_HuoSai_Pre.Text = "未显示";
+                label_HuoSai_Pre.Text =Convert.ToString(heatDis.HsVoltage/10)+'.'+Convert.ToString(heatDis.HsVoltage % 10) +'V' ;
                 //风扇占空比
                 label_FengShan_Pre.Text = "未显示";
 

@@ -1,4 +1,4 @@
-#ifndef __HEAT_H
+﻿#ifndef __HEAT_H
 #define __HEAT_H
 #include "StateMachine.h"
 #include "PlateFormConfig.h"
@@ -32,7 +32,7 @@ typedef union __HEAT_DIS
 	struct st
 	{
 		uint8_t comnd;
-		uint8_t reserved;
+		uint8_t HsVoltage;
 		uint8_t AlarmState : 4;
 		uint8_t StateMachine : 4;
 		uint8_t noused : 4;
@@ -210,7 +210,7 @@ typedef struct __PARM_HandleTypeDef {
 	void(*ParmInit)(struct __PARM_HandleTypeDef * phparm);
 	void(*ParmSet)(struct __PARM_HandleTypeDef * phparm);
 
-	uint16_t StartHeatKeTiTemp;//开始点火壳体温度，大于某一温度，需要吹凉后再点火
+	uint16_t HEAT_KT_START_TEMP;//开始点火壳体温度，大于某一温度，需要吹凉后再点火
 	
 	uint16_t HEAT_YB_StaticHz;//点火时油泵频率
 	uint16_t HEAT_YB_DynamicParm;//点火时油泵
@@ -265,7 +265,7 @@ typedef struct __PARM_HandleTypeDef {
 	uint16_t HEAT_KT_StartTime;
 	uint16_t HEAT_KT_JudgeTime;
 
-
+	//start 二次点火参数
 	uint16_t HEAT2_FS_EN_Time;
 	PARM_TypeDef HEAT2_FS_D1;
 	PARM_TypeDef HEAT2_FS_D2;
@@ -281,7 +281,15 @@ typedef struct __PARM_HandleTypeDef {
 
 	uint16_t HEAT2_FS_DIS_Time;
 
-	uint16_t HEAT2_HS_EN_OFST_Time;
+	uint16_t HEAT2_EN_OFST_Time;
+	uint16_t HEAT2_EN_OFST_KT_Temp;
+
+	PARM_TypeDef HEAT2_HS_D1;
+	PARM_TypeDef HEAT2_HS_D2;
+	PARM_TypeDef HEAT2_HS_D3;
+	PARM_TypeDef HEAT2_HS_D4;
+	PARM_TypeDef HEAT2_HS_D5;
+
 	PARM_TypeDef HEAT2_HS_OFST_D1;
 	PARM_TypeDef HEAT2_HS_OFST_D2;
 	PARM_TypeDef HEAT2_HS_OFST_D3;
@@ -300,6 +308,7 @@ typedef struct __PARM_HandleTypeDef {
 	
 	PARM_TypeDef WIND_FS_D1;
 	PARM_TypeDef WIND_FS_D2;
+	PARM_TypeDef WIND_FS_D3;
 
 	PARM_TypeDef NORMAL_FS_D1;
 	PARM_TypeDef NORMAL_FS_D2;
@@ -322,13 +331,17 @@ typedef struct __PARM_HandleTypeDef {
 	//stop  模式
 	PARM_TypeDef STOP_FS_D1;
 	PARM_TypeDef STOP_FS_D2;
+	PARM_TypeDef STOP_FS_D3;
 	
 	PARM_TypeDef STOP_HS_D1;
 	PARM_TypeDef STOP_HS_D2;
-	uint16_t STOP_HS_DIS_Time;
+	PARM_TypeDef STOP_HS_D3;
 
+	uint16_t STOP_HS_DIS_Time;
+	uint16_t STOP_SW2OFF_Time;
+	uint16_t STOP_SW2OFF_KetiTemp;
 	//end 启动参数化配置表
-	uint16_t HEAT_KETI_RISE_TEMP;
+	uint16_t HEAT_KT_RISE_TEMP;
 
 }PARM_HandleTypeDef;
 typedef struct __HUOER_HandleTypeDef {
@@ -414,6 +427,9 @@ typedef struct __HEAT_HandleTypeDef {
 	uint16_t MyTest;
 
 	uint16_t TargetPrm;
+	uint16_t TargetHsVolt;//火花塞电压
+	uint16_t CurrentHsPre;//火花塞电压
+
 	uint16_t(*pSetFenShanPre)(int16_t adjust);
 	uint16_t(*pSetHsVolt)(uint16_t );
 	uint16_t(*pSetYbHz)(uint16_t );

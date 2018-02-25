@@ -70,7 +70,7 @@ void StateMachineIdel(struct __HEAT_HandleTypeDef * phheat)
 			phheat->StateMachineNext = STATE_MACHINE_HEAT;
 		break;*/
 			//判断壳体温度，大于某个温度，吹凉后再点火
-			if (phheat->KeTiTemp > phheat->hParm.StartHeatKeTiTemp)
+			if (phheat->KeTiTemp > phheat->hParm.HEAT_KT_START_TEMP)
 			{
 				phheat->StateMachine = STATE_MACHINE_WIND;//进入通风状态
 				phheat->StateMachineNext =STATE_MACHINE_HEAT;
@@ -177,6 +177,11 @@ void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat)
 		}
 	}
 	//end 调节风扇转速
+	//start 调节火花塞
+	static uint16_t preTmp;
+	preTmp = (phheat->TargetHsVolt * 1000 / phheat->PowerVal_M100);//1000分之
+	phheat->pSetHsVolt(preTmp);
+	//end 调节火花塞
 	
 }
 void StateMachineUpdate(struct __HEAT_HandleTypeDef *phheat)
@@ -243,66 +248,57 @@ void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)
 void StateMachineWind(struct __HEAT_HandleTypeDef *phheat)
 {
 	//不清空各输出状态   只切断输出
-//	pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
-	pshHuoSai->OutStop(pshHuoSai);
-	//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, 5, pshSen->SenGetPowerVal());
-	pshFengShan->OutStart(pshFengShan);
-	pshYouBeng->OutStop(pshYouBeng);
+	phheat->pSetHsVolt(0);
+	phheat->pSetYbHz(0);
 	pshSysTime->StateMachineRun_s = 0;//清空运行时间计数
 
 	while (1)//
 	{
 		if (pshSysTime->SysTime.Time_s_up_flag)//系统时间有秒更新标志  执行例行检查调节
 		{
-			
+			pshSysTime->SysTime.Time_s_up_flag = 0;
 			pshSysTime->StateMachineRun_s++;//系统运行时间计数
 			//start 转速自动调节
-			if (pshSysTime->StateMachineRun_s<pshParm->WIND_FS_D1.Stop_s)//60s
+			if (pshSysTime->StateMachineRun_s>pshParm->WIND_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->WIND_FS_D1.Stop_s)//60s
 			{
-				//f_target_adjust_pre=FengShanAdjust_Pre(pshParm->WIND_FS_D1.Pre, pshFengShan->curPre, pshParm->WIND_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetPrm = ParmAdjustFun(pshParm->WIND_FS_D1.parm, phheat->TargetPrm, pshParm->WIND_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s>pshParm->WIND_FS_D2.Start_s &&pshSysTime->StateMachineRun_s<pshParm->WIND_FS_D2.Stop_s)//60s
+			{
+				phheat->TargetPrm = ParmAdjustFun(pshParm->WIND_FS_D2.parm, phheat->TargetPrm, pshParm->WIND_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s>pshParm->WIND_FS_D3.Start_s &&pshSysTime->StateMachineRun_s<pshParm->WIND_FS_D3.Stop_s)//60s
+			{
+				phheat->TargetPrm = ParmAdjustFun(pshParm->WIND_FS_D3.parm, phheat->TargetPrm, pshParm->WIND_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			//end 转速自动调节
 			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,计数溢出18小时，
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
-
 			}
-			
+			if (phheat->StateMachineNext < STATE_MACHINE_IDEL&& phheat->KeTiTemp < pshParm->HEAT_KT_START_TEMP)
+			{
+				phheat->StateMachine = STATE_MACHINE_IDEL;
+				return;
+			}
 		}
 		phheat->pCommPoll();//更新通信
-
-		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
-		{
-
-		}
+		phheat->pStateMachineUpdate(phheat);//更新系统
 		//start 按键操作
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
-			phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
 			phheat->StateMachineNext = STATE_MACHINE_HEAT;
 			break;
-		case KEY_STATE_STOP:
+		case KEY_STATE_WIND:
 			phheat->StateMachineNext = STATE_MACHINE_IDEL;
 			break;
-		case KEY_STATE_SW_2_HEAT_F_WIND:
-			if (phheat->KeTiTemp > pshAlarm->ALARM_NS_KeTiLowTemp)//壳体温度过高进通风模式
-			{
-				phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
-				
-			}
-			else {
-				phheat->StateMachine = STATE_MACHINE_HEAT;
-				phheat->StateMachineNext = STATE_MACHINE_HEAT;
-
-				return;
-			}
+		case KEY_STATE_STOP:
+			phheat->StateMachineNext = STATE_MACHINE_POWER_OFF;
 			break;
 		default:
 			break;
-
 		}
 		//end  按键操作
 		pshAlarm->AlarmCheck(pshAlarm);//故障检查
@@ -328,38 +324,44 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			//start 风扇控制
 			if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D1.Stop_s)//60s
 			{
-				phheat->TargetPrm=FengShanAdjust_Prm(pshParm->HEAT_FS_D1.parm, phheat->TargetPrm, pshParm->HEAT_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
+				phheat->TargetPrm=ParmAdjustFun(pshParm->HEAT_FS_D1.parm, phheat->TargetPrm, pshParm->HEAT_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 			}else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D2.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D2.Stop_s)//60s
 			{
-				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D2.parm, phheat->TargetPrm, pshParm->HEAT_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT_FS_D2.parm, phheat->TargetPrm, pshParm->HEAT_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D3.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D3.Stop_s)//60s
 			{
-				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D3.parm, phheat->TargetPrm, pshParm->HEAT_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT_FS_D3.parm, phheat->TargetPrm, pshParm->HEAT_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D4.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D4.Stop_s)//60s
 			{
-				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D4.parm, phheat->TargetPrm, pshParm->HEAT_FS_D4.Stop_s - pshSysTime->StateMachineRun_s);
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT_FS_D4.parm, phheat->TargetPrm, pshParm->HEAT_FS_D4.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT_FS_D5.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT_FS_D5.Stop_s)//60s
 			{
-				phheat->TargetPrm = FengShanAdjust_Prm(pshParm->HEAT_FS_D5.parm, phheat->TargetPrm, pshParm->HEAT_FS_D5.Stop_s - pshSysTime->StateMachineRun_s);
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT_FS_D5.parm, phheat->TargetPrm, pshParm->HEAT_FS_D5.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			//end 风扇控制
 			//start 火花塞控制
-			if (pshSysTime->StateMachineRun_s == pshParm->HEAT_HS_EN_Time)
+			if (pshSysTime->StateMachineRun_s >pshParm->HEAT_HS_D1.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT_HS_D1.Stop_s)
 			{
-				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai,50,pshParm->HS_StartPrmPre, pshSen->SenGetPowerVal());
-			}
-			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT_HS_D1.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT_HS_D1.Stop_s)
-			{
-				//i_target_adjust_pre= HuoSaiAdjust_Pre(pshParm->HEAT_HS_D1.Pre,pshHuoSai->curPre, pshParm->HEAT_HS_D1.Stop_s -pshSysTime->StateMachineRun_s);
-				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai,50,i_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetHsVolt =ParmAdjustFun(pshParm->HEAT_HS_D1.parm,phheat->TargetHsVolt,pshParm->HEAT_HS_D1.Stop_s-pshSysTime->StateMachineRun_s);
 			}
 			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT_HS_D2.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT_HS_D2.Stop_s)
 			{
-				//i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->HEAT_HS_D2.Pre, pshHuoSai->curPre, pshParm->HEAT_HS_D2.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT_HS_D2.parm, phheat->TargetHsVolt, pshParm->HEAT_HS_D2.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT_HS_D3.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT_HS_D3.Stop_s)
+			{
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT_HS_D3.parm, phheat->TargetHsVolt, pshParm->HEAT_HS_D3.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT_HS_D4.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT_HS_D4.Stop_s)
+			{
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT_HS_D4.parm, phheat->TargetHsVolt, pshParm->HEAT_HS_D4.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT_HS_D5.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT_HS_D5.Stop_s)
+			{
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT_HS_D5.parm, phheat->TargetHsVolt, pshParm->HEAT_HS_D5.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			//end 火花塞控制
 			//start 油泵控制
@@ -387,7 +389,7 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 			//点火是否成功判决
 			if (pshSysTime->StateMachineRun_s > pshParm->HEAT_KT_JudgeTime)
 			{
-				if (phheat->KeTiTemp > (pshParm->HEAT_KETI_RISE_TEMP + phheat->StartKeTiTemp))
+				if (phheat->KeTiTemp > (pshParm->HEAT_KT_RISE_TEMP + phheat->StartKeTiTemp))
 				{
 					phheat->StateMachine = STATE_MACHINE_NORMAL;//点火成功
 					return;
@@ -403,7 +405,6 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
 			}
-			
 			phheat->pStateMachineAdjest(phheat);
 		}//if (pshSysTime->SysTime.Time_s_up_flag)
 		phheat->pCommPoll();//更新通信
@@ -419,7 +420,6 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 		case KEY_STATE_HEAT:
 			break;
 		case KEY_STATE_STOP:
-			phheat->StateMachineNext = STATE_MACHINE_IDEL;
 			if (pshSysTime->StateMachineRun_s > pshParm->HEAT_YB_EN_Time)
 			{
 				phheat->StateMachine = STATE_MACHINE_STOP;
@@ -449,79 +449,121 @@ void StateMachineHeat(struct __HEAT_HandleTypeDef *phheat)
 void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 {
 	//不清空各输出状态   只切断输出
-	//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
-	pshHuoSai->OutStop(pshHuoSai);
-	//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, 5, pshSen->SenGetPowerVal());
-	pshFengShan->OutStart(pshFengShan);
-	pshYouBeng->OutStop(pshYouBeng);
+	phheat->pSetHsVolt(0);
+	phheat->pSetYbHz(0);
 	pshSysTime->StateMachineRun_s = 0;//清空运行时间计数
 	
-	phheat->HEAT2_KT_START_HEAT_Flag = 0;
+	phheat->HEAT2_KT_START_HEAT_Flag = 0;//二次点火开始标志
 
 	while (1)//
 	{
 		if (pshSysTime->SysTime.Time_s_up_flag)//系统时间有秒更新标志  执行例行检查调节
 		{
+			pshSysTime->SysTime.Time_s_up_flag = 0;
 			pshSysTime->StateMachineRun_s++;//系统运行时间计数
-											//start 风扇控制
+			//start 风扇控制
 			if (pshSysTime->StateMachineRun_s>pshParm->HEAT2_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT2_FS_D1.Stop_s)//60s
 			{
-				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D1.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_D1.parm, phheat->TargetPrm, pshParm->HEAT2_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT2_FS_D2.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT2_FS_D2.Stop_s)//60s
 			{
-				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D2.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_D2.parm, phheat->TargetPrm, pshParm->HEAT2_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT2_FS_D3.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT2_FS_D3.Stop_s)//60s
 			{
-				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->HEAT2_FS_D3.Pre, pshFengShan->curPre, pshParm->HEAT2_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_D3.parm, phheat->TargetPrm, pshParm->HEAT2_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT2_FS_D4.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT2_FS_D4.Stop_s)//60s
+			{
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_D4.parm, phheat->TargetPrm, pshParm->HEAT2_FS_D4.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s>pshParm->HEAT2_FS_D5.Start_s &&pshSysTime->StateMachineRun_s<pshParm->HEAT2_FS_D5.Stop_s)//60s
+			{
+				phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_D5.parm, phheat->TargetPrm, pshParm->HEAT2_FS_D5.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			//end 风扇控制
+			//start 火花塞控制
+			if (pshSysTime->StateMachineRun_s >pshParm->HEAT2_HS_D1.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT2_HS_D1.Stop_s)
+			{
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_D1.parm, phheat->TargetHsVolt, pshParm->HEAT2_HS_D1.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT2_HS_D2.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT2_HS_D2.Stop_s)
+			{
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_D2.parm, phheat->TargetHsVolt, pshParm->HEAT2_HS_D2.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT2_HS_D3.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT2_HS_D3.Stop_s)
+			{
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_D3.parm, phheat->TargetHsVolt, pshParm->HEAT2_HS_D3.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT2_HS_D4.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT2_HS_D4.Stop_s)
+			{
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_D4.parm, phheat->TargetHsVolt, pshParm->HEAT2_HS_D4.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s >pshParm->HEAT2_HS_D5.Start_s && pshSysTime->StateMachineRun_s <pshParm->HEAT2_HS_D5.Stop_s)
+			{
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_D5.parm, phheat->TargetHsVolt, pshParm->HEAT2_HS_D5.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			//end 火花塞控制
+			//start offset 二次点火			
 			if (phheat->HEAT2_KT_START_HEAT_Flag)
 			{
+				//start 风扇控制
+				if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_FS_OFST_D1.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_FS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				{
+					phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_OFST_D1.parm, phheat->TargetPrm, pshParm->HEAT2_FS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
+				}
+				else 	if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_FS_OFST_D2.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_FS_OFST_D2.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				{
+					phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_OFST_D2.parm, phheat->TargetPrm, pshParm->HEAT2_FS_OFST_D2.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
+				}
+				else 	if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_FS_OFST_D3.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_FS_OFST_D3.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				{
+					phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_OFST_D3.parm, phheat->TargetPrm, pshParm->HEAT2_FS_OFST_D3.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
+				}
+				else 	if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_FS_OFST_D4.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_FS_OFST_D4.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				{
+					phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_OFST_D4.parm, phheat->TargetPrm, pshParm->HEAT2_FS_OFST_D4.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
+				}
+				else 	if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_FS_OFST_D5.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_FS_OFST_D5.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				{
+					phheat->TargetPrm = ParmAdjustFun(pshParm->HEAT2_FS_OFST_D5.parm, phheat->TargetPrm, pshParm->HEAT2_FS_OFST_D5.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
+				}
+				//end 风扇控制
 				//start 火花塞控制
-
-				if (pshSysTime->StateMachineRun_s == pshParm->HEAT2_HS_EN_OFST_Time)
+				if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_HS_OFST_D1.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_HS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
 				{
-					//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, pshParm->HS_StartPrmPre, pshSen->SenGetPowerVal());
+					phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_OFST_D1.parm, phheat->TargetPrm, pshParm->HEAT2_HS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
 				}
-				else if (pshSysTime->StateMachineRun_s > (pshParm->HEAT2_HS_OFST_D1.Start_s+ phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_HS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				else 	if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_HS_OFST_D2.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_HS_OFST_D2.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
 				{
-					//i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->HEAT2_HS_OFST_D1.Pre, pshHuoSai->curPre, pshParm->HEAT2_HS_OFST_D1.Stop_s + phheat->HEAT2_KT_START_HEAT_Time- pshSysTime->StateMachineRun_s);
-					//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre, pshSen->SenGetPowerVal());
+					phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_OFST_D2.parm, phheat->TargetPrm, pshParm->HEAT2_HS_OFST_D2.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
 				}
-				
-
+				else 	if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_HS_OFST_D3.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_HS_OFST_D3.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				{
+					phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_OFST_D3.parm, phheat->TargetPrm, pshParm->HEAT2_HS_OFST_D3.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
+				}
+				else 	if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_HS_OFST_D4.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_HS_OFST_D4.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				{
+					phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_OFST_D4.parm, phheat->TargetPrm, pshParm->HEAT2_HS_OFST_D4.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
+				}
+				else 	if (pshSysTime->StateMachineRun_s >(pshParm->HEAT2_HS_OFST_D5.Start_s + phheat->HEAT2_KT_START_HEAT_Time) && pshSysTime->StateMachineRun_s < (pshParm->HEAT2_HS_OFST_D5.Stop_s + phheat->HEAT2_KT_START_HEAT_Time))
+				{
+					phheat->TargetHsVolt = ParmAdjustFun(pshParm->HEAT2_HS_OFST_D5.parm, phheat->TargetPrm, pshParm->HEAT2_HS_OFST_D5.Stop_s + phheat->HEAT2_KT_START_HEAT_Time - pshSysTime->StateMachineRun_s);
+				}
 				//end 火花塞控制
 				//start 油泵控制
 				if (pshSysTime->StateMachineRun_s == (pshParm->HEAT2_YB_EN_OFST_Time +phheat->HEAT2_KT_START_HEAT_Time))
 				{
-					switch (pshParm->ModeXkw)
-					{
-					case MODE_2KW:
-						//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, 100, 10, 240);
-						break;
-					case MODE_3KW:
-						//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, 130, 10, 240);
-						break;
-					case MODE_5KW:
-						//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, 150, 10, 240);
-						break;
-					default:
-						//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, 100, 10, 240);
-						break;
-					}
-
+					phheat->pSetYbHz(pshParm->HEAT_YB_StaticHz);
 				}
 				if (pshSysTime->StateMachineRun_s > (pshParm->HEAT2_YB_ADJ_OFST_Time + phheat->HEAT2_KT_START_HEAT_Time))
 				{
-					//pshYouBeng->OutSetParm(phheat);//(pshYouBeng, (int)((pshFengShan->curPre * 100) / (pshParm->FS_PreToYB_Hz)), 10, 240);
+					phheat->pSetYbHz((phheat->CurrentPrm - 100) / pshParm->HEAT_YB_DynamicParm);
 				}
 				//end  油泵控制
 			}
+			//end offset 二次点火			
 			//start 判断点火成功
 			if ((!(phheat->HEAT2_KT_START_HEAT_Flag)) && phheat->KeTiTemp < pshParm->HEAT2_KT_DROPDOWN_START_HEAT&&pshSysTime->StateMachineRun_s > pshParm->HEAT2_START_HEAT_Time)
 			{
@@ -536,28 +578,7 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 				{
 					phheat->StartKeTiTemp = phheat->KeTiTemp;
 				}
-				if(pshSysTime->StateMachineRun_s>(phheat->HEAT2_KT_START_HEAT_Time + pshParm->HEAT2_KT_HeatOffJudgeTime)&&phheat->KeTiTemp>(phheat->StartKeTiTemp+pshParm->HEAT_KETI_RISE_TEMP))
-				{
-					phheat->StateMachine = STATE_MACHINE_NORMAL;
-					return;
-				}
-				else {
-					phheat->StateMachine = STATE_MACHINE_STOP;
-					return;
-				}
-			}
-
-			if (pshSysTime->StateMachineRun_s == 100)
-			{
-				phheat->StartKeTiTemp = phheat->KeTiTemp;
-			}
-			if (pshSysTime->StateMachineRun_s > 100&&phheat->StartKeTiTemp > phheat->KeTiTemp)
-			{
-				phheat->StartKeTiTemp = phheat->KeTiTemp;
-			}
-			if (pshSysTime->StateMachineRun_s > 210)
-			{
-				if (phheat->KeTiTemp > (pshParm->HEAT_KETI_RISE_TEMP + phheat->StartKeTiTemp))
+				if(pshSysTime->StateMachineRun_s>(phheat->HEAT2_KT_START_HEAT_Time + pshParm->HEAT2_KT_HeatOffJudgeTime)&&phheat->KeTiTemp>(phheat->StartKeTiTemp+pshParm->HEAT_KT_RISE_TEMP))
 				{
 					phheat->StateMachine = STATE_MACHINE_NORMAL;
 					return;
@@ -574,14 +595,10 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			
+			phheat->pStateMachineAdjest(phheat);
 		}
 		phheat->pCommPoll();//更新通信
-
-		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
-		{
-
-		}
+		phheat->pStateMachineUpdate(phheat);//更新系统
 		//start 按键操作
 		switch (phheat->hKey.KeyStateGetClear())
 		{
@@ -594,13 +611,10 @@ void StateMachineHeat2(struct __HEAT_HandleTypeDef *phheat)
 			break;
 		default:
 			break;
-
 		}
 		//end  按键操作
 		pshAlarm->AlarmCheck(pshAlarm);//故障检查
-
 	}
-
 }
 
 void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
@@ -938,92 +952,75 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 {
 	//不清空各输出状态   只切断输出
-	//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
-	pshHuoSai->OutStop(pshHuoSai);
-	//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, 5, pshSen->SenGetPowerVal());
-	pshFengShan->OutStart(pshFengShan);
-	pshYouBeng->OutStop(pshYouBeng);
+	phheat->pSetYbHz(0);
+	phheat->pSetHsVolt(0);
 	pshSysTime->StateMachineRun_s = 0;//清空运行时间计数
 
 	while (1)//
 	{
 		if (pshSysTime->SysTime.Time_s_up_flag)//系统时间有秒更新标志  执行例行检查调节
 		{
+			pshSysTime->SysTime.Time_s_up_flag = 0;
 			pshSysTime->StateMachineRun_s++;//系统运行时间计数
-											//start 风扇控制
+			//start 风扇控制
 			if (pshSysTime->StateMachineRun_s>pshParm->STOP_FS_D1.Start_s &&pshSysTime->StateMachineRun_s<pshParm->STOP_FS_D1.Stop_s)//60s
 			{
-				//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->STOP_FS_D1.Pre, pshFengShan->curPre, pshParm->STOP_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetPrm = ParmAdjustFun(pshParm->STOP_FS_D1.parm, phheat->TargetPrm, pshParm->STOP_FS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 			}
-			
+			else if (pshSysTime->StateMachineRun_s>pshParm->STOP_FS_D2.Start_s &&pshSysTime->StateMachineRun_s<pshParm->STOP_FS_D2.Stop_s)//60s
+			{
+				phheat->TargetPrm = ParmAdjustFun(pshParm->STOP_FS_D2.parm, phheat->TargetPrm, pshParm->STOP_FS_D2.Stop_s - pshSysTime->StateMachineRun_s);
+			}
+			else if (pshSysTime->StateMachineRun_s>pshParm->STOP_FS_D3.Start_s &&pshSysTime->StateMachineRun_s<pshParm->STOP_FS_D3.Stop_s)//60s
+			{
+				phheat->TargetPrm = ParmAdjustFun(pshParm->STOP_FS_D3.parm, phheat->TargetPrm, pshParm->STOP_FS_D3.Stop_s - pshSysTime->StateMachineRun_s);
+			}
 			//end 风扇控制
 			//start 火花塞控制
-			if (pshSysTime->StateMachineRun_s == pshParm->STOP_HS_D1.Start_s)
+			if (pshSysTime->StateMachineRun_s >pshParm->STOP_HS_D1.Start_s && pshSysTime->StateMachineRun_s <pshParm->STOP_HS_D1.Stop_s)
 			{
-				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, pshParm->HS_StartPrmPre, pshSen->SenGetPowerVal());
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->STOP_HS_D1.parm, phheat->TargetHsVolt, pshParm->STOP_HS_D1.Stop_s - pshSysTime->StateMachineRun_s);
 			}
-			else if (pshSysTime->StateMachineRun_s >pshParm->STOP_HS_D1.Start_s && pshSysTime->StateMachineRun_s <pshParm->STOP_HS_D1.Stop_s)
+			else if (pshSysTime->StateMachineRun_s >pshParm->STOP_HS_D2.Start_s && pshSysTime->StateMachineRun_s <pshParm->STOP_HS_D2.Stop_s)
 			{
-				//i_target_adjust_pre = HuoSaiAdjust_Pre(pshParm->STOP_HS_D1.Pre, pshHuoSai->curPre, pshParm->STOP_HS_D1.Stop_s - pshSysTime->StateMachineRun_s);
-				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre, pshSen->SenGetPowerVal());
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->STOP_HS_D2.parm, phheat->TargetHsVolt, pshParm->STOP_HS_D2.Stop_s - pshSysTime->StateMachineRun_s);
 			}
-			if (pshParm->STOP_HS_DIS_Time == pshSysTime->StateMachineRun_s)
+			else if (pshSysTime->StateMachineRun_s >pshParm->STOP_HS_D3.Start_s && pshSysTime->StateMachineRun_s <pshParm->STOP_HS_D3.Stop_s)
 			{
-				//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, i_target_adjust_pre,240);
-				pshHuoSai->OutStop(pshHuoSai);
+				phheat->TargetHsVolt = ParmAdjustFun(pshParm->STOP_HS_D3.parm, phheat->TargetHsVolt, pshParm->STOP_HS_D3.Stop_s - pshSysTime->StateMachineRun_s);
 			}
 			//end 火花塞控制
 
 			//start 壳体温度判断关机
-			
-			if (( phheat->KeTiTemp< 50) && (pshSysTime->StateMachineRun_s>pshParm->STOP_HS_DIS_Time))
+			if (phheat->KeTiTemp<pshParm->STOP_SW2OFF_KetiTemp  && pshSysTime->StateMachineRun_s > pshParm->STOP_SW2OFF_Time)
 			{
 				phheat->StateMachine = STATE_MACHINE_POWER_OFF;
 				return;
 			}
-			
 			//end  壳体温度判断关机
 			if (pshSysTime->StateMachineRun_s > 36000)//0xffff,计数溢出18小时，
 			{
 				pshSysTime->StateMachineRun_s = 3600;
 				pshSysTime->TimeReset(pshSysTime);
-
 			}
-			
+			phheat->pStateMachineAdjest(phheat);
 		}
 		phheat->pCommPoll();//更新通信
-
-		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
-		{
-
-		}
+		phheat->pStateMachineUpdate(phheat);//更新系统
 		//start 按键操作
 		switch (phheat->hKey.KeyStateGetClear())
 		{
 		case KEY_STATE_HEAT:
-			phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
 			phheat->StateMachineNext = STATE_MACHINE_HEAT;
+			break;
+		case KEY_STATE_WIND:
+			phheat->StateMachineNext = STATE_MACHINE_WIND;
 			break;
 		case KEY_STATE_STOP:
 			phheat->StateMachineNext = STATE_MACHINE_IDEL;
 			break;
-		case KEY_STATE_SW_2_HEAT_F_WIND:
-			if (phheat->KeTiTemp > pshAlarm->ALARM_NS_KeTiLowTemp)//壳体温度过高进通风模式
-			{
-				phheat->hKey.KeyStateSet(KEY_STATE_SW_2_HEAT_F_WIND);
-
-			}
-			else {
-				phheat->StateMachine = STATE_MACHINE_HEAT;
-				phheat->StateMachineNext = STATE_MACHINE_HEAT;
-
-				return;
-			}
-			break;
 		default:
 			break;
-
 		}
 		//end  按键操作
 		pshAlarm->AlarmCheck(pshAlarm);//故障检查
@@ -1034,21 +1031,28 @@ void StateMachineStop(struct __HEAT_HandleTypeDef *phheat)
 void StateMachinePowerOff(struct __HEAT_HandleTypeDef *phheat)
 {
 	//不清空各输出状态   只切断输出
-	//pshHuoSai->OutSetParm(phheat);//(pshHuoSai, 50, 0, pshSen->SenGetPowerVal());
-	pshHuoSai->OutStop(pshHuoSai);
-	pshYouBeng->OutStop(pshYouBeng);
+	//pshHuoSai->OutStop(pshHuoSai);
+	//pshYouBeng->OutStop(pshYouBeng);
+	phheat->pSetYbHz(0);//失能油泵输出
+	phheat->pSetHsVolt(0);//失能点火塞
 	pshSysTime->StateMachineRun_s = 0;//清空运行时间计数
 
 	while (1)//
 	{
 		if (pshSysTime->SysTime.Time_s_up_flag)//系统时间有秒更新标志  执行例行检查调节
 		{
+			pshSysTime->SysTime.Time_s_up_flag = 0;
 			pshSysTime->StateMachineRun_s++;//系统运行时间计数
 			//start 转速自动调节
-			//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, pshFengShan->curPre*0.8, pshSen->SenGetPowerVal());
-			if (pshFengShan->curPre < 10)
+
+			if (phheat->CurrentPrm>800)
 			{
-				//MainBoardPowerDisable;//立即关机，解除自锁
+				phheat->TargetPrm *= 0.8;
+			}
+			else
+			{
+				phheat->TargetPrm = 0;
+				phheat->pSetFenShanPre(0);//关掉风扇输出
 				phheat->StateMachine = STATE_MACHINE_IDEL;
 				return;
 			}
@@ -1059,10 +1063,10 @@ void StateMachinePowerOff(struct __HEAT_HandleTypeDef *phheat)
 				pshSysTime->TimeReset(pshSysTime);
 
 			}
-			
+			phheat->pStateMachineAdjest(phheat);
 		}
 		phheat->pCommPoll();//更新通信
-
+		phheat->pStateMachineUpdate(phheat);//更新系统
 		if (pshSysTime->StateMachineRun_s > 2)//避免壳体判断
 		{
 
@@ -1114,7 +1118,7 @@ int HuoSaiAdjust_Pre(int target_pre, int current_pre, int remain_time)
 }
 //20180222，Coolthing.Liang 转速计算
 //获得调节风扇占空比
-uint16_t FengShanAdjust_Prm(uint16_t target_prm, uint16_t current_prm, uint16_t remain_time)
+uint16_t ParmAdjustFun(uint16_t target_prm, uint16_t current_prm, uint16_t remain_time)
 {
 	if (remain_time<1)
 	{

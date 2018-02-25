@@ -102,7 +102,7 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 	Flag=!Flag;
 
 	 /* TIM1_CH1 toggling with frequency = 244.13 Hz */
-  if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+  if(htim->Instance==TIM14 &&htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
   {
     uhCapture = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
     /* Set the Capture Compare Register value */
@@ -116,8 +116,6 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
    
   }
   
- 
-
 }
 
 void HAL_SYSTICK_Callback(void)

@@ -125,6 +125,7 @@ void CommPoll()
 			case 'a':////扫描更新显示状态
 				static HEAT_DIS heatDis;
 				heatDis.st.comnd = 'a';
+				heatDis.st.HsVoltage = hheat.TargetHsVolt / 10;
 				heatDis.st.AlarmState = hheat.AlarmState;
 				heatDis.st.StateMachine = hheat.StateMachine;
 				heatDis.st.StateRunLevel = hheat.StateRunLevel;

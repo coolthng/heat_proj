@@ -1,4 +1,4 @@
-#include "heat.h"
+﻿#include "heat.h"
 
 
 extern HEAT_HandleTypeDef hheat;
@@ -91,9 +91,18 @@ int PTgetUserSetTemp()
 uint16_t PTsetPreFengShan(int16_t adjust)
 {
 	static int16_t current_pre = 0;
-	current_pre += adjust;
-	if (current_pre < 10)
-		current_pre = 0;
+	if (adjust == 0)//如果为0 清空输出
+	{
+		current_pre += adjust;
+		if (current_pre < 10)
+			current_pre = 0;
+	}
+	else
+	{
+		current_pre += adjust;
+		if (current_pre < 10)
+			current_pre = 0;
+	}
 #if  (PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 	hheat.CurrentPrm = current_pre;
 	hheat.CurrentPrmTest = current_pre;
@@ -108,7 +117,9 @@ uint16_t PTsetPreFengShan(int16_t adjust)
 
 uint16_t PTsetHsVolt(uint16_t voltageValue)
 {
+	hheat.CurrentHsPre = voltageValue;
 #if  (PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
+
 	printf("设置火花塞电压：%d", voltageValue);
 #else
 #endif
