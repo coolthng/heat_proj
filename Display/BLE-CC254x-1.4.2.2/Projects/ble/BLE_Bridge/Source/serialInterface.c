@@ -130,21 +130,172 @@ void cSerialPacketParser( uint8 port, uint8 events )
   //unused input parameters
   (void)port;
   (void)events;
-  
+#define NPI_RX_LENGTH 40
+  static uint8 NPI_Rx[NPI_RX_LENGTH];
+  static uint8 NpiRxHeader=0;
+  static uint8 NpiRxTail=0;
+  static uint8 NpiPointer=0;
    uint8 done = FALSE;
    uint8 numBytes; 
       
 	if(events &HAL_UART_TX_EMPTY){
      events &=(~HAL_UART_TX_EMPTY);
-  //    P0_1 = 0;
-P1_4=0;
+    P1_4=0;
     osal_start_timerEx(serialInterface_TaskID,SEND_TIME_RS485_EVENT,SEND_TIME_RS485MAX); 
   }
    // get the number of available bytes to process
    numBytes = NPI_RxBufLen();
    // check if there's any serial port data to process
-     
+#if 1 //透传ok
+  // alloc temporary buffer
+   uint8 *temp_buf;
+   temp_buf = osal_mem_alloc( numBytes );
+         
+   //store dma buffer into temp buffer
+   (void)NPI_ReadTransport(temp_buf, numBytes);
 
+   // copy data from temp buffer into rx circular buffer
+   for (uint8 i = 0; i < numBytes; i++)
+   {
+     //copy one byte to data buffer
+     serialBuffer[serialBufferOffset] = temp_buf[i];                    
+     //update offset
+     serialBufferOffset = circular_add(serialBufferOffset,1);
+   }
+   //free temp buffer
+   osal_mem_free(temp_buf);
+         
+#endif
+#if 0 //my 0d0a结束标志
+while(numBytes)
+{
+  NPI_ReadTransport((uint8 *)&NPI_Rx[NpiPointer], 1);
+  if((NpiPointer>1)&&(NPI_Rx[NpiPointer-2]==0x0d)&&(NPI_Rx[NpiPointer-1]==0x0a))
+  {
+    for(int i=0;i<NpiPointer;i++)
+    {
+     //copy one byte to data buffer
+     serialBuffer[serialBufferOffset] = NPI_Rx[i];                    
+     //update offset
+     serialBufferOffset = circular_add(serialBufferOffset,1);
+    }
+    osal_memset(NPI_Rx,0,NpiPointer);
+    NpiPointer=0;
+  }
+  numBytes--;
+  NpiPointer++;
+}
+   
+#endif
+   
+#if 0//my 0d0a结束标志  有问题
+  //读数据到缓冲区
+   if(NpiRxHeader+numBytes>=NPI_RX_LENGTH)
+  {
+    NPI_ReadTransport((uint8 *)&NPI_Rx[NpiRxHeader], numBytes);
+    NpiRxHeader+=numBytes;
+  }else
+  {
+    NPI_ReadTransport((uint8 *)&NPI_Rx[NpiRxHeader], NPI_RX_LENGTH-NpiRxHeader);
+    NPI_ReadTransport((uint8 *)&NPI_Rx[0], numBytes+NpiRxHeader-NPI_RX_LENGTH);
+  }
+
+  if(NpiRxTail<NpiRxHeader)//正常顺序
+  {
+    NpiPointer=NpiRxTail+2;
+    while(NpiPointer<NpiRxHeader)
+    {
+      if(NPI_Rx[NpiPointer-2]==0x0d&&NPI_Rx[NpiPointer-1]==0x0a)//接收到有效数据
+      {
+        //temp_buf = osal_mem_alloc( NpiPointer-NpiRxTail);//有效数据长度
+        while(NpiRxTail<NpiPointer)
+        {
+          //copy one byte to data buffer
+          serialBuffer[serialBufferOffset] = NPI_Rx[NpiRxTail];                    
+          //update offset
+          serialBufferOffset = circular_add(serialBufferOffset,1);
+          NPI_Rx[NpiRxTail++]=0;//清除数据
+        }
+       }
+      NpiPointer++;
+     }
+  }//非正常顺序
+  else{
+    NpiPointer=NpiRxTail+2;
+    while(NpiPointer<NPI_RX_LENGTH)//先判断到结尾
+    {
+      if(NPI_Rx[NpiPointer-2]==0x0d&&NPI_Rx[NpiPointer-1]==0x0a)//接收到有效数据
+      {
+        //temp_buf = osal_mem_alloc( NpiPointer-NpiRxTail);//有效数据长度
+        while(NpiRxTail<NpiPointer)
+        {
+          //copy one byte to data buffer
+          serialBuffer[serialBufferOffset] = NPI_Rx[NpiRxTail];                    
+          //update offset
+          serialBufferOffset = circular_add(serialBufferOffset,1);
+          NPI_Rx[NpiRxTail++]=0;//清除数据
+        }
+       }
+      NpiPointer++;
+    }
+    if(NPI_Rx[NPI_RX_LENGTH-1]==0x0d&&NPI_Rx[0]==0x0a)//接收到有效数据
+    {
+        while(NpiRxTail<NPI_RX_LENGTH)
+        {
+          //copy one byte to data buffer
+          serialBuffer[serialBufferOffset] = NPI_Rx[NpiRxTail];                    
+          //update offset
+          serialBufferOffset = circular_add(serialBufferOffset,1);
+          NPI_Rx[NpiRxTail++]=0;//清除数据
+        }
+        NpiRxTail=0;
+          serialBuffer[serialBufferOffset] = NPI_Rx[NpiRxTail];                    
+          //update offset
+          serialBufferOffset = circular_add(serialBufferOffset,1);
+          NPI_Rx[NpiRxTail++]=0;//清除数据
+     }
+    NpiPointer=2;
+    while(NpiPointer<NpiRxHeader)
+    {
+      if(NPI_Rx[NpiPointer-2]==0x0d&&NPI_Rx[NpiPointer-1]==0x0a)//接收到有效数据
+      {
+        //temp_buf = osal_mem_alloc( NpiPointer-NpiRxTail);//有效数据长度
+        if(NpiRxTail>NpiPointer)
+        {
+          while(NpiRxTail<NPI_RX_LENGTH)
+          {
+            //copy one byte to data buffer
+            serialBuffer[serialBufferOffset] = NPI_Rx[NpiRxTail];                    
+            //update offset
+            serialBufferOffset = circular_add(serialBufferOffset,1);
+            NPI_Rx[NpiRxTail++]=0;//清除数据
+          }
+        }
+        NpiRxTail=NpiRxTail%NPI_RX_LENGTH;
+        while(NpiRxTail<NpiPointer)
+        {
+          //copy one byte to data buffer
+          serialBuffer[serialBufferOffset] = NPI_Rx[NpiRxTail];                    
+          //update offset
+          serialBufferOffset = circular_add(serialBufferOffset,1);
+          NPI_Rx[NpiRxTail++]=0;//清除数据
+        }
+       }
+      NpiPointer++;
+     }
+    
+  
+  }
+   if(NpiRxHeader==NPI_RX_LENGTH)
+   {
+   NpiRxHeader=0;
+   }
+  if(NpiRxTail==NPI_RX_LENGTH)
+  {
+    NpiRxTail=0;
+  }
+#endif
+#if 0
    while ( (numBytes > 0) && (!done) )
    {
      HalLedSet( HAL_LED_1, HAL_LED_MODE_TOGGLE );
@@ -198,7 +349,9 @@ P1_4=0;
        }
        break;
      }
-   }  
+   }
+#endif
+
 }
 
 uint8 sendAckMessage(uint8 bytes_sent)

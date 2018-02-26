@@ -442,16 +442,37 @@ static void simpleProfileChangeCB( uint8 paramID )
 {
   uint8 data[20];
   uint8 len;
+  #define DATA_RX_LENGTH 40
+  static uint8 dataRx[DATA_RX_LENGTH];
+  static uint8 dataRxHeader=0;
+  static uint8 dataRxTail=0;
   
   switch( paramID )
   {
     case SIMPLEPROFILE_CHAR3:
-      SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &data );
-      len = data[0];
-      HalLedSet( HAL_LED_1, HAL_LED_MODE_TOGGLE );
+      //SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &data );
+if(dataRxHeader>20)
+dataRxHeader=0;
+      SimpleProfile_GetParameter(SIMPLEPROFILE_CHAR3, &dataRx[dataRxHeader]);
+      while(dataRx[dataRxHeader++])
+      {
+        if((dataRxHeader>1)&&(dataRx[dataRxHeader-2]==0x0d)&&(dataRx[dataRxHeader-1]==0x0a))
+        {
+          while (sendDataToHost(dataRx, dataRxHeader));
+          osal_memset(dataRx, 0, dataRxHeader);
+          dataRxHeader=0;
+          HalLedSet( HAL_LED_1, HAL_LED_MODE_TOGGLE );
+          return ;
+        }
+      }
+      if(dataRxHeader>DATA_RX_LENGTH)
+      {
+      dataRxHeader=0;
+      }
+      //len = data[0];
       //HalLedSet( HAL_LED_2, HAL_LED_MODE_TOGGLE );
       //keep trying to send data until it is a success. this may not be the desirable approach
-      while (sendDataToHost(&data[1], len));
+      //while (sendDataToHost(&data[1], len));
       break;
 
     default:
