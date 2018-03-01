@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <Project>
     <WindowStorage>
         <ChildIdMap>
@@ -686,7 +686,7 @@
             <IarPane-34088>
                 <expressions>
                     <item>NPI_Rx</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>
