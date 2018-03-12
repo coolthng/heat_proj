@@ -24,8 +24,6 @@ namespace PC_HeatDemo
         byte[] myStateByteArry = new byte[500];
         byte[] mySetByteArry=new byte[50];
         
-        int commflag_count = 0;
-
         byte keyState = 0;//按键值状态
         byte levelState = 0;//正常工作模式档位
         bool stateSendFlag = false;//状态下发完成标志
@@ -163,8 +161,6 @@ namespace PC_HeatDemo
         }
         private void DoUpdate()///希望被执行的函数（被委托）        
         {
-            commflag_count = 5;
-
             //01 04 09 22 34 00 22 00 33 00 44 71cB
             if (UpdataArr[0] == 0x61)
             {
@@ -464,58 +460,22 @@ namespace PC_HeatDemo
         {
 
         }
-        int count;
+       
         int stateSetCount = 0;
         private void timer1_Tick(object sender, EventArgs e)
         {
 
-            commflag_count--;
-            if (commflag_count > 0)
-            {
-                count++;
-          
-            }
-            else {
-                
-#if false
-                label_ChuKou.Text = "";
-                label_DianWeiQi.Text = "";
-                label_DianYuan.Text = "";
-                label_FengShan.Text = "";
-                label_FengShan_Pre.Text = "";
-                label_HuoSai_Pre.Text = "";
-                label_JinKou.Text = "";
-                label_KeTi.Text = "";
-                label_MachineState.Text = "";
-                label_RunTime.Text = "";
-                label_YouBeng_Pre.Text = "";
-                label_Compile_date.Text = "";
-                label_Compile_time.Text = "";
-                label_FengShan_Adj_Pre.Text = "";
-                label_HuoSai_Adj_Pre.Text = "";
-                label_Version.Text = "";
-                label_work_mode.Text = "";
-#endif      
-                
-            }
 #if true
-            if (stateSendFlag)
+            if (stateSendFlag)//有按键使能
             {
-
-
                 mySetByteArry[0] = (byte)'k';// 0x01;
                 mySetByteArry[1] = levelState;// 0x06;
                 mySetByteArry[2] = keyState;// 0x00;
                 mySetByteArry[3] = 0x0d;// 0x00;
                 mySetByteArry[4] = 0x0a;// levelState;
-                //mySetByteArry[5] = keyState;
-                //int res = Crc16(mySetByteArry, 6);
-                //mySetByteArry[6] = (byte)(res % 256);
-                //mySetByteArry[7] = (byte)(res / 256);
                 if (sp.IsOpen)
                 {
                     sp.Write(mySetByteArry, 0, 5);
-
                 }
                 stateSendFlag = false;
                 stateSetCount++;
@@ -526,31 +486,15 @@ namespace PC_HeatDemo
                 }
 
             }
-            else if (stateSetParmFlag)
+            else if (stateSetParmFlag)//设置参数
             {
                 mySetByteArry[0] = (byte)'s';
                 mySetByteArry[1] = 0x10;
-                //mySetByteArry[2] = 0x00;
-                //mySetByteArry[3] = 0x00;
-                //mySetByteArry[4] = 0x00;
-                //mySetByteArry[5] = 0x0a;
-                //mySetByteArry[6] = 0x14;
-
-
-                //SetStateParmArry[0] = Convert.ToInt16(tB_SetPower.Text);
-                //SetStateParmArry[1] = Convert.ToInt16(tB_SetRunLevel.Text);
-                //SetStateParmArry[2] = Convert.ToInt16(tB_SetKeTi.Text);
-                //SetStateParmArry[3] = Convert.ToInt16(tB_SetJinKou.Text);
-                //SetStateParmArry[4] = Convert.ToInt16(tB_SetChuKou.Text);
-                //SetStateParmArry[5] = Convert.ToInt16(tB_SetHuoSaiFb.Text);
-                //SetStateParmArry[6] = Convert.ToInt16(tB_SetYouBengFb.Text);
-                //SetStateParmArry[7] = Convert.ToInt16(tB_SetFengShanPrm.Text);
                 for (int i = 0; i < 8; i++)
                 {
                     mySetByteArry[2 + 2 * i] = (byte)(SetStateParmArry[i] % 256);
                     mySetByteArry[2 + 2 * i + 1] = (byte)(SetStateParmArry[i] / 256);
                 }
-                //int res = Crc16(mySetByteArry, 27);
                 mySetByteArry[18] = 0x0d;// (byte)(res % 256);
                 mySetByteArry[19] = 0x0a;// (byte)(res / 256);
                 if (sp.IsOpen)
@@ -566,7 +510,7 @@ namespace PC_HeatDemo
                     stateSetParmFlag = false;
                 }
 
-            } else if (stateUpParmFlag)
+            } else if (stateUpParmFlag)//配置初始化参数
             {
                 mySetByteArry[0] = (byte)'p';
                 int txLength = SetUpParmArry[0] % 16;
@@ -591,19 +535,12 @@ namespace PC_HeatDemo
                     stateUpParmFlag = false;
                 }
             }
-            else
+            else//获取常规状态
             {
                 stateSetCount = 0;
                 mySetByteArry[0] = 0x61;//'a';//0x01;
                 mySetByteArry[1] = 0x0d;
                 mySetByteArry[2] = 0x0a;
-                //mySetByteArry[3] = 0x00;
-                //mySetByteArry[4] = 0x00;
-                //mySetByteArry[5] = 0x0c;
-
-                //int res = Crc16(mySetByteArry, 6);
-                //mySetByteArry[6] = (byte)(res % 256);
-                //mySetByteArry[7] = (byte)(res / 256);
                 if (sp.IsOpen)
                 {
                     sp.Write(mySetByteArry, 0, 3);
@@ -924,35 +861,31 @@ namespace PC_HeatDemo
             Thread thParm = new Thread(ThreadSendParm);
             thParm.Start(); //启动线程
         }
-
+        
         private void ThreadSendParm()
         {
             const bool StaticHeatParmFlag = false;
-            //Thread.Sleep(1000);
-            //SendKeys.SendWait("{Enter}");
-
             //textBox_Other.Text = "读heatparm.xel配置文件";
-            Console.WriteLine("已写+parmTxPostion:%d");
-            ReadExcel.ReadExcel readExcel = new ReadExcel.ReadExcel();
-            string projDirStr = Environment.CurrentDirectory;
-            Regex regex = new Regex("PC_GuiDemo");
-            Match mc = regex.Match(projDirStr);
-            int position = mc.Index;
+            Console.WriteLine("读heatparm.xel配置文件");
+            ReadExcel.ReadExcel readExcel = new ReadExcel.ReadExcel();//定义读Excel
+            string projDirStr = Environment.CurrentDirectory;//当前工程路径
+            Regex regex = new Regex("PC_GuiDemo");//特定目录下
+            Match mc = regex.Match(projDirStr);//正则表达式
+            int position = mc.Index;//
             string heatParmDir = projDirStr.Substring(0, position);
-            String filename = heatParmDir + "PC_GuiDemo" + "\\" + "heatparm.xlsx";
+            String filename = heatParmDir + "PC_GuiDemo" + "\\" + "heatparm.xlsx";//文件名
             int parmLength = 0;
-            int[] testArr = new int[20];
+            int[] testArr = { 0, 5, 0, 1, 10, 1000, 50, 60, 1500, 90, 120, 2000, 0, 0, 0, 0, 0, 0, 4, 4, 8, 500, 8, 12, 1400, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 60, 65, 7, 60, 150, 70, 90, 0, 10, 1000, 60, 70, 2000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10, 1000, 50, 60, 1500, 90, 120, 2000, 0, 0, 0, 0, 0, 0, 50, 55, 1500, 110, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 10, 1500, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 65, 0, 10, 2000, 55, 60, 1500, 0, 0, 0, 10, 15, 1500, 50, 55, 0, 0, 0, 0, 60, 70, 0, 10, 2000, 0, 0, 0, 0, 0, 0 };
+            //new int[20];
             Array arr ;
-            if (StaticHeatParmFlag)
+            if (StaticHeatParmFlag)//模拟参数
             {
-                for (int i = 0; i < 20; i++)
-                {
-                    testArr[i] = i;
-                }
+                Console.WriteLine("读模拟数据");
                 parmLength = testArr.Length;// arr.Length;
             }
             else
             {
+                Console.WriteLine("读Excel数据");
                arr = readExcel.ReadXlsSheetName(filename, "heatparm");//读参数配置表
                 parmLength = arr.Length;// arr.Length;
             }
@@ -960,6 +893,7 @@ namespace PC_HeatDemo
             
             int parmTxPostion = 0;
             //textBox_Other.Text = "读取配置信息成功，正在写数据";
+            Console.WriteLine("读取配置信息成功，正在写数据");
             stateBackParmFlag = true;
             int countThread = 0;
             while (parmTxPostion < parmLength)
@@ -992,13 +926,12 @@ namespace PC_HeatDemo
                 }
                 SetUpParmArry[0] = (Int16)(parmTxPostion * 16 + i);
 
-                Console.WriteLine("已写+parmTxPostion:%d" + parmTxPostion);
+                Console.WriteLine("总长度:"+parmLength+"已写parmTxPostion:" + parmTxPostion);
                 parmTxPostion += i;
                 stateUpParmFlag = true;//使能发送
                 stateBackParmFlag = false;//等待回传成功
             }
-           
-
+            Console.WriteLine("写入数据完成");
         }
         bool bTLogFlag = false;
         private void bTLog_Click(object sender, EventArgs e)

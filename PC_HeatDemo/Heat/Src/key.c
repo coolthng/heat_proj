@@ -45,7 +45,7 @@ KEY_STATE_TypeDef KEY_StateGetClear( )
 {
 	pshKey->keyStateEver = pshKey->keyState;
 	pshKey->keyState = KEY_STATE_NONE;
-	return pshKey->keyStateEver;
+	return  pshKey->keyStateEver;
 	
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 	printf("Key State Get Clear \n");
