@@ -64,7 +64,7 @@ void CommInit(eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRat
 #endif
 
 extern USHORT   usRegInputBuf[20];
-uint16_t HeatParmArr[100];
+uint16_t HeatParmArr[300];
 void CommPoll()
 {
 	static uint16_t res;
@@ -83,7 +83,7 @@ void CommPoll()
 	static uint8_t RxArrPtr = 0;
 	static uint8_t MB_TxBuf[80];
 	static uint8_t RxArrFlag;
-	PurgeComm(hCom, PURGE_TXCLEAR | PURGE_RXCLEAR); //清空缓冲区
+	//PurgeComm(hCom, PURGE_TXCLEAR | PURGE_RXCLEAR); //清空缓冲区
 		//printf("%s\n", str);
 	do {
 		bReadStat = ReadFile(hCom, &RxArrTmp, 1, &rCount, NULL);
