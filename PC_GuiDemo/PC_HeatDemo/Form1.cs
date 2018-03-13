@@ -147,7 +147,7 @@ namespace PC_HeatDemo
             test[4] = 0x4;
             //packet = (TGSGetDataRequest)BytesToStruct((byte[])buf, Marshal.SizeOf(packet), packet.GetType());
             // heatDis = (__HeatDis)BytesToStruct((byte[])test, Marshal.SizeOf(heatDis), heatDis.GetType());
-            thComm.Start();
+           
         }
         private void DoUpdate()///希望被执行的函数（被委托）        
         {
@@ -345,6 +345,7 @@ namespace PC_HeatDemo
         int ttttttt_count = 0;
         private void ThreadComm()
         {
+            
             while (true)
             {
                 int SDataLength = this.sp.BytesToRead;
@@ -567,8 +568,19 @@ namespace PC_HeatDemo
                     //sp.DataReceived += new SerialDataReceivedEventHandler(sp_DataReceived);
                     sp.Open();//打开串口 
                     button2.Text = "关闭串口";
-                   // label_Tip.Text = Convert.ToString(sp.PortName) + "已开启！";
-                   // groupBox3.Enabled = true;
+                    // label_Tip.Text = Convert.ToString(sp.PortName) + "已开启！";
+                    // groupBox3.Enabled = true;
+                    //if(thComm.ApartmentState== ApartmentState.)
+                    // ThreadState Unstarted   System.Threading.ThreadState
+                    if (thComm.ThreadState == ThreadState.Suspended)
+                    {
+                        thComm.Resume();
+                    }
+                    else
+                    {
+                        thComm.Start();
+
+                    }
 
                 }
                 else
@@ -577,6 +589,7 @@ namespace PC_HeatDemo
                     button2.Text = "打开串口";
                     //groupBox3.Enabled = false;
                     //label_Tip.Text = Convert.ToString(sp.PortName) + "已关闭！";
+                    thComm.Suspend();
                 }
             }
 
