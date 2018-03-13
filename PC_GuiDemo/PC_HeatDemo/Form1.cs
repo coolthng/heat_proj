@@ -44,20 +44,20 @@ namespace PC_HeatDemo
         public struct __HeatDis
         {
            
-            public byte comnd;
-            public byte HsVoltage;
-            public byte parm1;
-            public byte parm2;
-            public byte StateMachineRun_s;
-            public byte JinKouTemp;
-            public UInt16 CurrentPrm;
-            public Int16 KeTiTemp;//10
-            public UInt16 PowerVolatge;//12
-            public UInt16 YouBengHz;//14
-            public Int16 resav3;//16
-            public Int16 resav4;//18
-            public byte tail1;
-            public byte tail2;
+            public byte comnd;//0
+            public byte HsVoltage;//1 火花塞电压
+            public byte parm1;//2  高四位状态机  低四位报警状态
+            public byte parm2;//3  高四位挡位    低四位保留  
+            public byte StateMachineRun_s;//4 状态机运行时间
+            public byte JinKouTemp;//5 进口温度
+            public UInt16 CurrentPrm;//6 当前转速
+            public Int16 KeTiTemp;//8 壳体温度
+            public UInt16 PowerVolatge;//10 电源电压
+            public UInt16 YouBengHz;//12 油泵频率
+            public Int16 resav3;//14 保留数据3
+            public Int16 resav4;//16 保留数据4
+            public byte tail1;//18 0x0d
+            public byte tail2;//19 0x0a
 
             public byte AlarmState
             {
