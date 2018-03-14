@@ -35,9 +35,7 @@ namespace PC_HeatDemo
 
         public delegate void GuiUpdata();
         GuiUpdata myGuiUpdata;
-
-      
-
+        
         bool stateSendFlag = false;//状态下发完成标志
         bool stateSetParmFlag = false;//设置参数下发完成标志
         bool stateUpParmFlag = false;//更新参数标志
@@ -178,6 +176,9 @@ namespace PC_HeatDemo
             int CommRxTimeOutCount = 0;
             while (true)
             {
+                //start 自动检查任务
+              
+                //end 自动检查任务
                 switch (myCommState)
                 {
                     case CommState.STATE_TX:
@@ -201,9 +202,28 @@ namespace PC_HeatDemo
                                     mySetByteArry[2] = Convert.ToByte(aaa);// 0x00;
                                     mySetByteArry[3] = 0x0d;// 0x00;
                                     mySetByteArry[4] = 0x0a;// levelState;
-                                    usart_tx_length = 4;
+                                    usart_tx_length = 5;
                                     break;
                                 case 'l':
+                                    break;
+                                case 'v':
+                                    mySetByteArry[0] = (byte)'v';//0x01;
+                                    mySetByteArry[1] = 0x0d;
+                                    mySetByteArry[2] = 0x0a;
+                                    usart_tx_length = 3;
+                                    break;
+                                case 'p':
+                                    mySetByteArry[0] = (byte)'p';
+                                    int txLength = SetUpParmArry[0] % 16;
+                                    mySetByteArry[1] = (byte)txLength;
+                                    for (int i = 0; i <= txLength; i++)
+                                    {
+                                        mySetByteArry[2 + 2 * i] = (byte)(SetUpParmArry[i] % 256);
+                                        mySetByteArry[2 + 2 * i + 1] = (byte)(SetUpParmArry[i] / 256);
+                                    }
+                                    mySetByteArry[4 + 2 * txLength] = 0x0d;// (byte)(res % 256);
+                                    mySetByteArry[5 + 2 * txLength] = 0x0a;// (byte)(res / 256);
+                                    usart_tx_length = 6 + 2 * txLength;
                                     break;
                                 default:
                                     break;
@@ -267,8 +287,14 @@ namespace PC_HeatDemo
 #endif
                         break;
                     case CommState.STATE_RX:
-                        
-                        int SDataLength = this.sp.BytesToRead;
+                        int SDataLength = 0;
+                        try
+                        {
+                            SDataLength = this.sp.BytesToRead;
+                        }
+                        catch {
+
+                        }
                         while (SDataLength > RX_BUFFER_LENGTH)
                         {
                             byte[] temp = new byte[RX_BUFFER_LENGTH];
@@ -297,7 +323,8 @@ namespace PC_HeatDemo
                             int s_header = RxArrPtrHeader;
                             for (; i < (RxArrPtrTail + RX_BUFFER_LENGTH - s_header) % RX_BUFFER_LENGTH; i++)
                             {
-                                UpdataArr[i] = RxArr[RxArrPtrHeader++];
+                                UpdataArr[i] = RxArr[RxArrPtrHeader];
+                                RxArr[RxArrPtrHeader++]=0;
                                 if (RxArrPtrHeader >= RX_BUFFER_LENGTH)
                                 {
                                     RxArrPtrHeader = 0;
@@ -383,6 +410,7 @@ namespace PC_HeatDemo
 
         private void ThreadSendParm()
         {
+            QueueInfo myQueueInfo = new QueueInfo();
             const bool StaticHeatParmFlag = false;
             //textBox_Other.Text = "读heatparm.xel配置文件";
             Console.WriteLine("读heatparm.xel配置文件");
@@ -414,7 +442,7 @@ namespace PC_HeatDemo
             Console.WriteLine("读取配置信息成功，正在写数据");
             stateBackParmFlag = true;
             int countThread = 0;
-            while (parmTxPostion < parmLength)
+            while (parmTxPostion <= parmLength)//== 最后一帧发0字节
             {
                 while (!stateBackParmFlag)
                 {
@@ -423,7 +451,9 @@ namespace PC_HeatDemo
                     if (countThread > 10)
                     {
                         countThread = 0;
-                        stateUpParmFlag = true;//使能发送
+                        //stateUpParmFlag = true;//使能发送
+                        myQueueInfo.Type = 'p';
+                        myQueue.AddQueue(myQueueInfo);
                     }
 
                 }
@@ -445,8 +475,14 @@ namespace PC_HeatDemo
                 SetUpParmArry[0] = (Int16)(parmTxPostion * 16 + i);
 
                 Console.WriteLine("总长度:" + parmLength + "已写parmTxPostion:" + parmTxPostion);
+                if (i == 0)
+                {
+                    i = 1;//下一步while 跳出循环
+                }
                 parmTxPostion += i;
-                stateUpParmFlag = true;//使能发送
+                //stateUpParmFlag = true;//使能发送
+                myQueueInfo.Type = 'p';
+                myQueue.AddQueue(myQueueInfo);
                 stateBackParmFlag = false;//等待回传成功
             }
             Console.WriteLine("写入数据完成");
@@ -455,9 +491,19 @@ namespace PC_HeatDemo
         //更新显示
         private void DoUpdate()///希望被执行的函数（被委托）        
         {
-            //01 04 09 22 34 00 22 00 33 00 44 71cB
-            //if (UpdataArr[0] == 0x61)
-            if (true)//暂定
+            //更新版本号显示
+            if (UpdataArr[0] == 'v')
+            {
+                int vvv = UpdataArr[1] * 100 + UpdataArr[2] * 10 + UpdataArr[3];
+                label_Version.Text ='V'+ vvv.ToString();
+            }
+            if (UpdataArr[0] == 'p')
+            {
+                stateBackParmFlag = true;//已经成功返回，可以发下一帧
+            }
+            //更新系统状态
+            if (UpdataArr[0] == 'a')
+            //if (true)//暂定
             {
                 heatDis = (__HeatDis)BytesToStruct((byte[])UpdataArr, Marshal.SizeOf(heatDis), heatDis.GetType());
                 string item_temp;

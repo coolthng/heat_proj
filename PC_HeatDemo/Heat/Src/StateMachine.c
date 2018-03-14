@@ -282,6 +282,7 @@ void StateMachineWind(struct __HEAT_HandleTypeDef *phheat)
 				phheat->StateMachine = STATE_MACHINE_IDEL;
 				return;
 			}
+			phheat->pStateMachineAdjest(phheat);
 		}
 		phheat->pCommPoll();//更新通信
 		phheat->pStateMachineUpdate(phheat);//更新系统

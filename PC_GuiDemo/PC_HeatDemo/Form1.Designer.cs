@@ -123,6 +123,7 @@ namespace PC_HeatDemo
             this.tB_SetKeTi = new System.Windows.Forms.TextBox();
             this.tB_SetRunLevel = new System.Windows.Forms.TextBox();
             this.tB_SetPower = new System.Windows.Forms.TextBox();
+            this.bT_Wind = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -734,6 +735,7 @@ namespace PC_HeatDemo
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.bT_Wind);
             this.groupBox3.Controls.Add(this.button6);
             this.groupBox3.Controls.Add(this.label32);
             this.groupBox3.Controls.Add(this.bT_Debug);
@@ -778,7 +780,7 @@ namespace PC_HeatDemo
             // 
             // bT_Debug
             // 
-            this.bT_Debug.Location = new System.Drawing.Point(275, 27);
+            this.bT_Debug.Location = new System.Drawing.Point(181, 26);
             this.bT_Debug.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.bT_Debug.Name = "bT_Debug";
             this.bT_Debug.Size = new System.Drawing.Size(75, 75);
@@ -1131,6 +1133,17 @@ namespace PC_HeatDemo
             this.tB_SetPower.TabIndex = 64;
             this.tB_SetPower.Text = "0";
             // 
+            // bT_Wind
+            // 
+            this.bT_Wind.Location = new System.Drawing.Point(288, 26);
+            this.bT_Wind.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.bT_Wind.Name = "bT_Wind";
+            this.bT_Wind.Size = new System.Drawing.Size(75, 75);
+            this.bT_Wind.TabIndex = 53;
+            this.bT_Wind.Text = "通风";
+            this.bT_Wind.UseVisualStyleBackColor = true;
+            this.bT_Wind.Click += new System.EventHandler(this.bT_Wind_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
@@ -1258,6 +1271,7 @@ namespace PC_HeatDemo
         private System.Windows.Forms.Label label32;
         private System.Windows.Forms.Button bTLog;
         private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button bT_Wind;
     }
 }
 

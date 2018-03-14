@@ -141,6 +141,7 @@ namespace PC_HeatDemo
 
         private void button2_Click(object sender, EventArgs e)
         {
+            label_Version.Text = "000";
             String str1 = ComPort.Text  ;//串口号             
             String str2 = comboBox2.Text;//波特率             
             String str3 = comboBox3.Text;//数据位             
@@ -203,6 +204,7 @@ namespace PC_HeatDemo
                     // groupBox3.Enabled = true;
                     //if(thComm.ApartmentState== ApartmentState.)
                     // ThreadState Unstarted   System.Threading.ThreadState
+                    Thread.Sleep(500);
                     if (thComm.ThreadState == ThreadState.Suspended)
                     {
                         thComm.Resume();
@@ -212,7 +214,11 @@ namespace PC_HeatDemo
                         thComm.Start();
 
                     }
-
+                   //更新版本信息
+                       QueueInfo     myQueueInfoTx = new QueueInfo();
+                        myQueueInfoTx.Type = 'v';
+                        myQueue.AddQueue(myQueueInfoTx); //添加获取版本号事件
+                    //更新版本信息
                 }
                 else
                 {
@@ -273,6 +279,13 @@ namespace PC_HeatDemo
             myQuInfo.Msg = 3;
             myQueue.AddQueue(myQuInfo);
        }
+        private void bT_Wind_Click(object sender, EventArgs e)
+        {
+            MyQueue.QueueInfo myQuInfo = new MyQueue.QueueInfo();
+            myQuInfo.Type = 'k';
+            myQuInfo.Msg = 2;
+            myQueue.AddQueue(myQuInfo);
+        }
 
         private void bT_SetParm_Click(object sender, EventArgs e)
         {
@@ -312,8 +325,8 @@ namespace PC_HeatDemo
         private void button3_Click(object sender, EventArgs e)
         {
             
-            //Thread thParm = new Thread(ThreadSendParm);
-            //thParm.Start(); //启动线程
+            Thread thParm = new Thread(ThreadSendParm);
+            thParm.Start(); //启动线程
         }
         bool bTLogFlag = false;
         private void bTLog_Click(object sender, EventArgs e)
@@ -338,5 +351,6 @@ namespace PC_HeatDemo
             }
         }
 
+       
     }
 }

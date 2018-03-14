@@ -104,8 +104,25 @@ void CommPoll()
 			break;
 		}
 	} while (bReadStat);
+	///Sleep(500);
+
+	static time_t now;
+	static time_t	last2222;
+
+
+	time(&now);
+
+	static int sec = 0;
+	static int aaa, bbb;
+	aaa = (int)now;
+	//sec = tm_now->tm_sec;
+	if (last2222 != now)
+	{
+		hheat.hSysTime.SysTime.Time_s_up_flag = 1;
+		bbb = aaa;
+		last2222 = now;
+	}
 	
-	hheat.hSysTime.SysTime.Time_s_up_flag = 1;
 #else
 	extern uint8_t RxArrFlag;
 	extern uint8_t RxArr[100];
@@ -244,7 +261,12 @@ void CommPoll()
 				TxArr[4] = 0x0d;
 				TxArr[5] = 0x0a;
 				TxArr[6] = NULL;
-
+				if (parmLength < 7)//数据全部接收完
+				{
+					hheat.hParm.WIND_FS_D1.Start_s = HeatParmArr[124];
+					hheat.hParm.WIND_FS_D1.Stop_s = HeatParmArr[125];
+					hheat.hParm.WIND_FS_D1.parm = HeatParmArr[126];
+				}
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出
 				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//发出
@@ -270,6 +292,28 @@ void CommPoll()
 			HAL_Delay(5);
 				HAL_UART_Transmit_DMA_my(&huart1,TxArr,2);
 				
+#endif
+				break;
+			case 'v'://获取版本号
+				//hheat.hSensor.SenTestDianWeiQi= RxArr[1];
+				
+				TxArr[0] = 'v';
+				TxArr[1] = 1;
+				TxArr[2] = 0;
+				TxArr[3] = 1;
+				TxArr[4] =0x0d;
+				TxArr[5] = 0x0a;
+				TxArr[6] = NULL;
+
+
+#if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
+				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出
+				bWriteStat = WriteFile(hCom, TxArr, 6, &wCount, NULL);//发出
+#else
+				RS485_TX;
+				HAL_Delay(5);
+				HAL_UART_Transmit_DMA_my(&huart1, TxArr, 6);
+
 #endif
 				break;
 			default:
