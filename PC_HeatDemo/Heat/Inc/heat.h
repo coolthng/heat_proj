@@ -1,4 +1,4 @@
-﻿#ifndef __HEAT_H
+#ifndef __HEAT_H
 #define __HEAT_H
 #include "StateMachine.h"
 #include "PlateFormConfig.h"
@@ -205,6 +205,19 @@ typedef struct __PARM_TypeDef {
 	uint16_t parm;
 
 }PARM_TypeDef;
+typedef union parm {
+	struct {
+		//点火参数
+
+		uint16_t HEAT_KT_START_TEMP;		uint16_t HEAT_KETI_RISE_TEMP;		uint16_t HEAT_FS_EN_Time;		PARM_TypeDef HEAT_FS_D1;		PARM_TypeDef HEAT_FS_D2;		PARM_TypeDef HEAT_FS_D3;		PARM_TypeDef HEAT_FS_D4;		PARM_TypeDef HEAT_FS_D5;		uint16_t HEAT_HS_EN_Time;		PARM_TypeDef HEAT_HS_D1;		PARM_TypeDef HEAT_HS_D2;		PARM_TypeDef HEAT_HS_D3;		PARM_TypeDef HEAT_HS_D4;		PARM_TypeDef HEAT_HS_D5;		uint16_t HEAT_YB_EN_Time;		uint16_t HEAT_YB_StaticHz;		uint16_t HEAT_YB_ADJ_Time;		uint16_t HEAT_YB_DynamicParm;		uint16_t HEAT_KT_StartTime;		uint16_t HEAT_KT_JudgeTime;		uint16_t HEAT2_KT_DROPDOWN_START_HEAT;		uint16_t HEAT2_START_HEAT_Time;		PARM_TypeDef HEAT2_FS_D1;		PARM_TypeDef HEAT2_FS_D2;		PARM_TypeDef HEAT2_FS_D3;		PARM_TypeDef HEAT2_FS_D4;		PARM_TypeDef HEAT2_FS_D5;		PARM_TypeDef HEAT2_FS_OFST_D1;		PARM_TypeDef HEAT2_FS_OFST_D2;		PARM_TypeDef HEAT2_FS_OFST_D3;		PARM_TypeDef HEAT2_FS_OFST_D4;		PARM_TypeDef HEAT2_FS_OFST_D5;		PARM_TypeDef HEAT2_HS_D1;		PARM_TypeDef HEAT2_HS_D2;		PARM_TypeDef HEAT2_HS_D3;		PARM_TypeDef HEAT2_HS_D4;		PARM_TypeDef HEAT2_HS_D5;		PARM_TypeDef HEAT2_HS_OFST_D1;		PARM_TypeDef HEAT2_HS_OFST_D2;		PARM_TypeDef HEAT2_HS_OFST_D3;		PARM_TypeDef HEAT2_HS_OFST_D4;		PARM_TypeDef HEAT2_HS_OFST_D5;		uint16_t HEAT2_YB_EN_OFST_Time;		uint16_t HEAT2_YB_ADJ_OFST_Time;		PARM_TypeDef STOP_FS_D1;		PARM_TypeDef STOP_FS_D2;		PARM_TypeDef STOP_FS_D3;		PARM_TypeDef STOP_HS_D1;		PARM_TypeDef STOP_HS_D2;		PARM_TypeDef STOP_HS_D3;		uint16_t STOP_SW2OFF_Time;		uint16_t STOP_SW2OFF_KetiTemp;		PARM_TypeDef WIND_FS_D1;		PARM_TypeDef WIND_FS_D2;		PARM_TypeDef WIND_FS_D3;
+		uint16_t PARM_LENGTH;
+		uint16_t PARM_CRC;
+
+
+	}st;
+	uint16_t un_parm[];
+
+}HeatParm;
 
 typedef struct __PARM_HandleTypeDef {
 	void(*ParmInit)(struct __PARM_HandleTypeDef * phparm);
@@ -217,25 +230,7 @@ typedef struct __PARM_HandleTypeDef {
 
 
 
-	uint8_t FS_StartPrmPre;
-	uint8_t FS1000PrmPre;
-	uint8_t FS1500PrmPre;
-	uint8_t FS2000PrmPre;
-	uint8_t FS2500PrmPre;
-	uint8_t FS3000PrmPre;
-	uint8_t FS3500PrmPre;
-	uint8_t FS4000PrmPre;
-	uint8_t FS4500PrmPre;
-	uint8_t FS5000PrmPre;
-
-	uint8_t HS_StartPrmPre;
-	uint8_t HS14V0PrmPre;
-	uint8_t HS14V5PrmPre;
-	uint8_t HS15V0PrmPre;
-	uint8_t HS15V5PrmPre;
-	uint8_t HS16V0PrmPre;
-	uint8_t HS16V5PrmPre;
-
+	
 	uint16_t FS_PreToYB_Hz;
 	MODE_XKW_TypeDef ModeXkw;
 

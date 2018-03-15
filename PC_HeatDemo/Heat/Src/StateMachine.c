@@ -856,21 +856,21 @@ void StateMachineNormal(struct __HEAT_HandleTypeDef *phheat)
 					case STATE_RUN_LEVEL_1:
 						if (l_adjust_count_s<pshParm->NORMAL_STATE_SWITCH_LEVEL_Second)
 						{
-							f_target_adjust_pre = FengShanAdjust_Pre(pshParm->FS3000PrmPre, pshFengShan->curPre, pshParm->NORMAL_STATE_SWITCH_LEVEL_Second - l_adjust_count_s);
+							//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->FS3000PrmPre, pshFengShan->curPre, pshParm->NORMAL_STATE_SWITCH_LEVEL_Second - l_adjust_count_s);
 							//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 						}
 						break;
 					case STATE_RUN_LEVEL_2:
 						if (l_adjust_count_s<pshParm->NORMAL_STATE_SWITCH_LEVEL_Second)
 						{
-							f_target_adjust_pre = FengShanAdjust_Pre(pshParm->FS4000PrmPre, pshFengShan->curPre, pshParm->NORMAL_STATE_SWITCH_LEVEL_Second - l_adjust_count_s);
+							//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->FS4000PrmPre, pshFengShan->curPre, pshParm->NORMAL_STATE_SWITCH_LEVEL_Second - l_adjust_count_s);
 							//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 						}
 						break;
 					case STATE_RUN_LEVEL_3:
 						if (l_adjust_count_s<pshParm->NORMAL_STATE_SWITCH_LEVEL_Second)
 						{
-							f_target_adjust_pre = FengShanAdjust_Pre(pshParm->FS4500PrmPre, pshFengShan->curPre, pshParm->NORMAL_STATE_SWITCH_LEVEL_Second - l_adjust_count_s);
+							//f_target_adjust_pre = FengShanAdjust_Pre(pshParm->FS4500PrmPre, pshFengShan->curPre, pshParm->NORMAL_STATE_SWITCH_LEVEL_Second - l_adjust_count_s);
 							//pshFengShan->OutSetParm(phheat);//(pshFengShan, 1500, f_target_adjust_pre, pshSen->SenGetPowerVal());
 						}
 						break;

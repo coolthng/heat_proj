@@ -213,28 +213,13 @@ void PARM_Set(struct __PARM_HandleTypeDef * phparm)
 
 void PARM_Init(struct __PARM_HandleTypeDef * phparm)
 {
+	//从Flash 读取配置参数
 	
-	phparm->ParmSet = PARM_Set;
-	phparm->FS_StartPrmPre = 5;
-	phparm->FS1000PrmPre = 15;
-	phparm->FS1500PrmPre = 25;
-	phparm->FS2000PrmPre = 31;
-	phparm->FS2500PrmPre = 40;
-	phparm->FS3000PrmPre = 47;
-	phparm->FS3500PrmPre = 55;
-	phparm->FS4000PrmPre = 62;
-	phparm->FS4500PrmPre = 72;
-	phparm->FS5000PrmPre = 75;
 
-	phparm->HS_StartPrmPre = 5;
-	phparm->HS14V0PrmPre = 58;
-	phparm->HS14V5PrmPre = 60;
-	phparm->HS15V0PrmPre = 62;
-	phparm->HS15V5PrmPre = 65;
-	phparm->HS16V0PrmPre = 67;
-	phparm->HS16V5PrmPre = 69;
+	//phparm->ParmSet = PARM_Set;
+	//phparm->FS_PreToYB_Hz = 65;
+	//phparm->ModeXkw = 5;//5kw 瓦
 
-	phparm->FS_PreToYB_Hz = 65;
-	phparm->ModeXkw = 5;//5kw 瓦
+	
 
 }
