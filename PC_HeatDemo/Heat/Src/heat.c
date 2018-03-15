@@ -73,7 +73,7 @@ phheat->pStateMachineInit(phheat);
 	phheat->hParm.ParmInit = PARM_Init;
 	phheat->hParm.ParmSet = PARM_Set;
 	phheat->hParm.ParmInit(&phheat->hParm);
-	phheat->hParm.ParmSet(&phheat->hParm);
+	//phheat->hParm.ParmSet(&phheat->hParm);
 	
 	//end  初始化系统
 	

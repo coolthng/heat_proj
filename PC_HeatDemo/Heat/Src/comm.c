@@ -114,7 +114,7 @@ void CommPoll()
 
 	static int sec = 0;
 	static int aaa, bbb;
-	aaa = (int)now;
+	 (int)now;
 	//sec = tm_now->tm_sec;
 	if (last2222 != now)
 	{
@@ -246,13 +246,15 @@ void CommPoll()
 				break;
 			case 'p':
 				//RxArr[]//接收到的数组
+				static HeatParm myHeatParmRx;
 				uint16_t parmPostion = 0;
 				uint16_t parmLength = 0;
 				parmLength = RxArr[1];
 				parmPostion = RxArr[3] << 4 | RxArr[2] >> 4;
 				for (int i = 0; i < parmLength; i++)
 				{
-					HeatParmArr[parmPostion + i] = RxArr[4 + 2 * i] | RxArr[4 + 1 + 2 * i]<<8;
+					//HeatParmArr[parmPostion + i] = RxArr[4 + 2 * i] | RxArr[4 + 1 + 2 * i]<<8;
+					myHeatParmRx.un_parm[parmPostion + i] = RxArr[4 + 2 * i] | RxArr[4 + 1 + 2 * i] << 8;
 				}
 				TxArr[0] = 'p';
 				TxArr[1] = RxArr[1];
@@ -263,9 +265,10 @@ void CommPoll()
 				TxArr[6] = NULL;
 				if (parmLength < 7)//数据全部接收完
 				{
-					hheat.hParm.WIND_FS_D1.Start_s = HeatParmArr[124];
+					/*hheat.hParm.WIND_FS_D1.Start_s = HeatParmArr[124];
 					hheat.hParm.WIND_FS_D1.Stop_s = HeatParmArr[125];
-					hheat.hParm.WIND_FS_D1.parm = HeatParmArr[126];
+					hheat.hParm.WIND_FS_D1.parm = HeatParmArr[126];*/
+					hheat.hParm.ParmSet(&(hheat.hParm), &myHeatParmRx);
 				}
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出

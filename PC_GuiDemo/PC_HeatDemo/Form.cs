@@ -422,7 +422,7 @@ namespace PC_HeatDemo
             string heatParmDir = projDirStr.Substring(0, position);
             String filename = heatParmDir + "PC_GuiDemo" + "\\" + "heatparm.xlsx";//文件名
             int parmLength = 0;
-            int[] testArr = { 0, 5, 0, 1, 10, 1000, 50, 60, 1500, 90, 120, 2000, 0, 0, 0, 0, 0, 0, 4, 4, 8, 500, 8, 12, 1400, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 60, 65, 7, 60, 150, 70, 90, 0, 10, 1000, 60, 70, 2000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10, 1000, 50, 60, 1500, 90, 120, 2000, 0, 0, 0, 0, 0, 0, 50, 55, 1500, 110, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 10, 1500, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 65, 0, 10, 2000, 55, 60, 1500, 0, 0, 0, 10, 15, 1500, 50, 55, 0, 0, 0, 0, 60, 70, 0, 10, 2000, 0, 0, 0, 0, 0, 0 };
+            int[] testArr = { 0, 5, 0, 1, 10, 1000, 50, 60, 1500, 90, 120, 2000, 0, 0, 0, 0, 0, 0, 4, 4, 8, 500, 8, 12, 1400, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 60, 65, 7, 60, 150, 70, 90, 0, 10, 1000, 60, 70, 2000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10, 1000, 50, 60, 1500, 90, 120, 2000, 0, 0, 0, 0, 0, 0, 50, 55, 1500, 110, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 10, 1500, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 65, 0, 10, 2000, 55, 60, 1500, 0, 0, 0, 10, 15, 1500, 50, 55, 0, 0, 0, 0, 60, 70, 0, 20, 1300, 0, 0, 0, 0, 0, 0, 134, 25613 };
             //new int[20];
             Array arr;
             if (StaticHeatParmFlag)//模拟参数
@@ -435,6 +435,21 @@ namespace PC_HeatDemo
                 Console.WriteLine("读Excel数据");
                 arr = readExcel.ReadXlsSheetName(filename, "heatparm");//读参数配置表
                 parmLength = arr.Length;// arr.Length;
+                UInt16 parm_c_length = (UInt16)((double)arr.GetValue(arr.Length - 1, 1));
+                //arr.SetValue(1,1,1);
+                if ((UInt16)((double)arr.GetValue(arr.Length - 1, 1)) == (arr.Length - 1))//为有效数据长度
+                {
+                    UInt16 crc_u16 = 0;
+                    for (int i = 1; i < arr.Length; i++)
+                    {
+                        crc_u16 += (UInt16)((double)arr.GetValue(i, 1));
+                    }
+                    arr.SetValue((double)crc_u16, arr.Length, 1);
+                }
+                else
+                {
+                    return;
+                }
             }
 
             int parmTxPostion = 0;

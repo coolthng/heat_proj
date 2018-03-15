@@ -81,7 +81,8 @@ namespace ReadExcel
             }
             Console.WriteLine(sheet.Name);
             int row = sheet.UsedRange.Rows.Count;//获取不为空的行数  
-            int col = sheet.UsedRange.Columns.Count;//获取不为空的列数  
+            int col = sheet.UsedRange.Columns.Count;//获取不为空的列数 
+            
             Array value;
             // Array value = (Array)sheet.get_Range(sheet.Cells[1, 1], sheet.Cells[row, col]).Cells.Value2;//获得区域数据赋值给Array数组，方便读取  
             if (row > 3 && col > 3)

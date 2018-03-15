@@ -1,9 +1,9 @@
-#ifndef  __STATEMACHINE_
+﻿#ifndef  __STATEMACHINE_
 #define  __STATEMACHINE_
 #include "heat.h"
 
 #include "stdint.h"
-void STATE_heat();/*¼ÓÈÈ×´Ì¬*/
+void STATE_heat();//
 //void StateIdel(HEAT_HandleTypeDef *phheat);
 
 

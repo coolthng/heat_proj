@@ -296,7 +296,9 @@ void StateMachineWind(struct __HEAT_HandleTypeDef *phheat)
 			phheat->StateMachineNext = STATE_MACHINE_IDEL;
 			break;
 		case KEY_STATE_STOP:
+			//phheat->StateMachine = STATE_MACHINE_POWER_OFF;
 			phheat->StateMachineNext = STATE_MACHINE_POWER_OFF;
+			return;
 			break;
 		default:
 			break;
