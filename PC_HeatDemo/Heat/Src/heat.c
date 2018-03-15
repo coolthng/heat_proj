@@ -103,7 +103,7 @@ void HEAT_Poll(HEAT_HandleTypeDef *phheat)
 			StateMachinePowerOff(phheat);
 			break;
 		case STATE_MACHINE_NORMAL:
-			//StateMachineNormal(phheat);
+			StateMachineNormal(phheat);
 			break;
 		case STATE_MACHINE_WIND:
 			StateMachineWind(phheat);
