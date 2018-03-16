@@ -454,7 +454,8 @@ static void simpleProfileChangeCB( uint8 paramID )
 if(dataRxHeader>20)
 dataRxHeader=0;
       SimpleProfile_GetParameter(SIMPLEPROFILE_CHAR3, &dataRx[dataRxHeader]);
-      while(dataRx[dataRxHeader++])
+      //while(dataRx[dataRxHeader++])
+      while((dataRxHeader++)<20)
       {
         if((dataRxHeader>1)&&(dataRx[dataRxHeader-2]==0x0d)&&(dataRx[dataRxHeader-1]==0x0a))
         {
