@@ -6,6 +6,11 @@ extern TIM_HandleTypeDef htim17;
 #endif
 extern HEAT_HandleTypeDef hheat;
 
+#include "queue.h"
+CircleQueue myAlarmQueue;
+CircleQueue myMachEvtQueue;
+
+
 HEAT_StatusTypeDef HEAT_Init(HEAT_HandleTypeDef *phheat)
 {
 	
@@ -74,7 +79,13 @@ phheat->pStateMachineInit(phheat);
 	phheat->hParm.ParmSet = PARM_Set;
 	phheat->hParm.ParmInit(&phheat->hParm);
 	//phheat->hParm.ParmSet(&phheat->hParm);
-	
+	//初始化故障事件队列
+	if (InitCircleQueue(&myAlarmQueue))//初始化成功
+	{
+
+	}else{//初始化失败
+	}
+
 	//end  初始化系统
 	
 	return HEAT_OK;

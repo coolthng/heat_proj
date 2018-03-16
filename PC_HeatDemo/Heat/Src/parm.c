@@ -178,7 +178,7 @@ void PARM_DefSet(struct __PARM_HandleTypeDef * phparm)
 	//start 通风参数
 	phparm->WIND_FS_D1.Start_s = 0;
 	phparm->WIND_FS_D1.Stop_s = 10;
-	phparm->WIND_FS_D1.parm = 2000;// phparm->FS3500Prmparm;
+	phparm->WIND_FS_D1.parm = 1500;// phparm->FS3500Prmparm;
 	phparm->WIND_FS_D2.Start_s = 0;
 	phparm->WIND_FS_D2.Stop_s = 0;
 	phparm->WIND_FS_D2.parm = 0;

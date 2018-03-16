@@ -1,10 +1,10 @@
-﻿//#include "../../Heat/Src/heat.h"
+//#include "../../Heat/Src/heat.h"
 #include "heat.h"//$(ProjectDir)\..\Heat\Inc
-
 
 
 //USHORT   usRegInputBuf[REG_INPUT_NREGS];
 USHORT   usRegInputBuf[20];
+
 
 
 HEAT_HandleTypeDef hheat;
@@ -17,6 +17,7 @@ HEAT_HandleTypeDef *phheat;
 #include "fileapi.h"
 int main(void)
 {
+	//main2222();
 	CommInit(MB_RTU, 0x01, 1, 115200, MB_PAR_NONE);//通信初始化
 	
 	HEAT_Init(&hheat);
