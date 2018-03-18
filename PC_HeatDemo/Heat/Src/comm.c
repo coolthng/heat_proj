@@ -276,7 +276,7 @@ void CommPoll()
 #else
 				RS485_TX;
 				HAL_Delay(5);
-				HAL_UART_Transmit_DMA_my(&huart1, TxArr, 2);
+				HAL_UART_Transmit_DMA_my(&huart1, TxArr, 6);
 
 #endif
 				break;
