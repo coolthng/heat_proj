@@ -1,6 +1,11 @@
 
 #include "StateMachine.h"
 #include "heat.h"
+
+#include "queue.h"
+extern CircleQueue myAlarmQueue;
+extern CircleQueue myMachEvtQueue;
+
 static OUT_HandleTypeDef  *pshHuoSai;
 static OUT_HandleTypeDef  *pshFengShan;
 static OUT_HandleTypeDef  *pshYouBeng;
@@ -184,6 +189,46 @@ void StateMachineAdjust(struct __HEAT_HandleTypeDef *phheat)
 	//end 调节火花塞
 	
 }
+
+typedef enum
+{
+	NoToPowerOff = 0x01,//掉电停机1
+	NoCommEr,//通信故障2
+	NoFsOpenEr,//电机开路故障3
+	NoFsShortEr,//电机短路故障3
+	NoHrEr,//电机霍尔故障3
+	NoHsOpenEr,//火花塞开路故障4
+	NoHsShortEr,//火花塞短路故障4
+	NoYbOpenEr,//油泵故障5
+	NoYbShortEr,//油泵故障5
+	NoKtOpenEr,//壳体开路故障
+	NoKtShortEr,//壳体短路故障
+	NoKtOverEr,//壳体过热故障
+	NoPwHiEr,//电压过高故障7
+	NoPwLoEr,//电压过低故障7
+	NoMhEr,//中途灭火故障8
+	NoH2Er,//二次点火故障 8
+}ErrorNo_TypeDef;
+typedef enum
+{
+	NoMahStart = 0x01,//开机
+	NoMahWind,//通风
+	NoMahStop,//关机
+	NoMahToStop,//切换到关机
+	NoMahToPowoff,//切换到停机
+
+}MachineNo_TypeDef;
+typedef struct __PerFaultFlag {
+	uint8_t HsErFlag:1;
+	uint8_t FsErFlag : 1;
+	uint8_t YbErFlag : 1;
+	uint8_t CcErFlag : 1;
+	uint8_t JcErFlag : 1;
+	uint8_t KtErFlag : 1;
+	uint8_t PwErFlag : 1;
+	uint8_t N2ErFlag : 1;
+}PerFaultFlag;
+PerFaultFlag myPerFaultFlag;
 void StateMachineUpdate(struct __HEAT_HandleTypeDef *phheat)
 {
 	//start 更新系统
@@ -197,6 +242,93 @@ void StateMachineUpdate(struct __HEAT_HandleTypeDef *phheat)
 	phheat->UserSetTemp = phheat->getuserSetTemp();
 	phheat->CurrentPrm = 	phheat->getHallFbVal();
 	//end 更新系统
+
+	//start 系统状态判断
+	//火花塞检查
+	if (!myPerFaultFlag.HsErFlag)//检查是否有故障，若没有故障
+	{
+		if (phheat->HsFbVal > 1000)
+		{
+			myPerFaultFlag.HsErFlag = 1;//添加故障
+			PushElement(myAlarmQueue, NoHsShortEr);
+		}
+		if (phheat->HsFbVal < 90)
+		{
+			myPerFaultFlag.HsErFlag = 1;//添加故障
+			PushElement(myAlarmQueue, NoHsOpenEr);
+		}
+	}
+	else {
+	
+	}
+	//风扇检查
+	if (!myPerFaultFlag.FsErFlag)
+	{
+		if (phheat->FsFbVal > 1000)
+		{
+			myPerFaultFlag.FsErFlag = 1;
+			PushElement(myAlarmQueue,NoFsShortEr);
+		}else if (phheat->FsFbVal < 90)
+		{
+			myPerFaultFlag.FsErFlag = 1;
+			PushElement(myAlarmQueue, NoFsOpenEr);
+		}
+		if (0)//判断霍尔标志
+		{
+			myPerFaultFlag.FsErFlag = 1;
+			PushElement(myAlarmQueue, NoFsOpenEr);
+		}
+	}
+	//油泵检查
+	if (!myPerFaultFlag.YbErFlag)
+	{
+		if (phheat->YbFbVal > 1000)
+		{
+			myPerFaultFlag.YbErFlag = 1;
+			PushElement(myAlarmQueue,NoYbShortEr);
+		}
+		else if (phheat->FsFbVal < 60)
+		{
+			myPerFaultFlag.YbErFlag = 1;
+			PushElement(myAlarmQueue, NoYbOpenEr);
+		}
+	}
+	//壳体检查
+	if (!myPerFaultFlag.KtErFlag)
+	{
+		if (phheat->KeTiTemp > 300)
+		{
+			myPerFaultFlag.KtErFlag = 1;
+			PushElement(myAlarmQueue, NoKtOpenEr);
+		}
+		else if (phheat->KeTiTemp > 250)
+		{
+			myPerFaultFlag.KtErFlag = 1;
+			PushElement(myAlarmQueue, NoKtOverEr);
+		}
+		else if (phheat->KeTiTemp < -100)
+		{
+			myPerFaultFlag.KtErFlag = 1;
+			PushElement(myAlarmQueue, NoKtShortEr);
+		}
+	}
+	//电源检查
+	if (!myPerFaultFlag.PwErFlag)
+	{
+		if (phheat->PowerVal_M100 > 3200)
+		{
+			myPerFaultFlag.PwErFlag = 1;
+			PushElement(myAlarmQueue,NoPwHiEr);
+		}
+		else if (phheat->PowerVal_M100<1600)
+		{
+			myPerFaultFlag.PwErFlag = 1;
+			PushElement(myAlarmQueue, NoPwLoEr);
+		}
+	}
+	//end 系统状态判断
+
+
 	
 }
 void StateMachineDebug(struct __HEAT_HandleTypeDef *phheat)

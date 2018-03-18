@@ -51,6 +51,9 @@
     <ClCompile Include="..\Heat\Src\comm.c">
       <Filter>Heat</Filter>
     </ClCompile>
+    <ClCompile Include="..\Heat\Src\queue.c">
+      <Filter>Heat</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Heat\Src\heat.h">
