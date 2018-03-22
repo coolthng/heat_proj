@@ -686,7 +686,7 @@
             <IarPane-34088>
                 <expressions>
                     <item>NPI_Rx</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>
