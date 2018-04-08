@@ -87,6 +87,7 @@ namespace PC_HeatDemo
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.bT_Wind = new System.Windows.Forms.Button();
             this.button6 = new System.Windows.Forms.Button();
             this.label32 = new System.Windows.Forms.Label();
             this.bT_Debug = new System.Windows.Forms.Button();
@@ -123,7 +124,6 @@ namespace PC_HeatDemo
             this.tB_SetKeTi = new System.Windows.Forms.TextBox();
             this.tB_SetRunLevel = new System.Windows.Forms.TextBox();
             this.tB_SetPower = new System.Windows.Forms.TextBox();
-            this.bT_Wind = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -756,6 +756,17 @@ namespace PC_HeatDemo
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "其他功能区";
             // 
+            // bT_Wind
+            // 
+            this.bT_Wind.Location = new System.Drawing.Point(288, 26);
+            this.bT_Wind.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.bT_Wind.Name = "bT_Wind";
+            this.bT_Wind.Size = new System.Drawing.Size(75, 75);
+            this.bT_Wind.TabIndex = 53;
+            this.bT_Wind.Text = "通风";
+            this.bT_Wind.UseVisualStyleBackColor = true;
+            this.bT_Wind.Click += new System.EventHandler(this.bT_Wind_Click);
+            // 
             // button6
             // 
             this.button6.Font = new System.Drawing.Font("宋体", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
@@ -1132,17 +1143,6 @@ namespace PC_HeatDemo
             this.tB_SetPower.Size = new System.Drawing.Size(177, 35);
             this.tB_SetPower.TabIndex = 64;
             this.tB_SetPower.Text = "0";
-            // 
-            // bT_Wind
-            // 
-            this.bT_Wind.Location = new System.Drawing.Point(288, 26);
-            this.bT_Wind.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.bT_Wind.Name = "bT_Wind";
-            this.bT_Wind.Size = new System.Drawing.Size(75, 75);
-            this.bT_Wind.TabIndex = 53;
-            this.bT_Wind.Text = "通风";
-            this.bT_Wind.UseVisualStyleBackColor = true;
-            this.bT_Wind.Click += new System.EventHandler(this.bT_Wind_Click);
             // 
             // Form1
             // 

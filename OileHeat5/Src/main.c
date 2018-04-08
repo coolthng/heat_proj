@@ -57,6 +57,8 @@ uint16_t YouBengL=40000;//960;
 uint16_t YouBengPried=1000;
 uint16_t HuoSaiH=500;//10000  50Hz
 uint16_t FengShanH=1600;// 3200
+
+volatile uint8_t RS485_TxFlag=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -155,7 +157,7 @@ void HAL_SYSTICK_Callback(void)
 
 
 
-uint8_t TxArr[200]="Heat-1s V1.0\n";
+uint8_t TxArr[200]="Heat-1s V1.0\r\n";
 
 uint8_t HelpCommandLine[][100]=
 {
@@ -195,12 +197,24 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	static uint8_t RxPtr=0;
-	RxArr[RxPtr++]=RxArrTmp;
-	if(RxPtr>2&&RxArr[RxPtr-2]==0x0d&&RxArr[RxPtr-1]==0x0a)
+	//if(RS485_TxFlag)
+	if(1)
 	{
-	RxPtr=0;
-		RxArrFlag=1;
-		RS485_TX;//使能发送
+		RxArr[RxPtr++]=RxArrTmp;
+		if(RxPtr>2&&RxArr[RxPtr-2]==0x0d&&RxArr[RxPtr-1]==0x0a)
+		{
+			RxPtr=0;
+			if(TxArr[1]!=RxArr[1])
+			{
+				RxArrFlag=1;
+				RS485_TX;//使能发送
+			}else if(TxArr[0]!=RxArr[0])
+			{
+				RxArrFlag=1;
+				RS485_TX;//使能发送
+			}
+			
+		}
 	}
 	HAL_UART_Receive_IT(&huart1,&RxArrTmp,1);
   //HAL_UART_Transmit_DMA(&huart1,TxArr,15);
@@ -390,6 +404,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+	
+	while(0)
+	{
+	
+	}
   MX_DMA_Init();
   MX_TIM3_Init();
   MX_TIM14_Init();
@@ -417,6 +436,7 @@ HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_4);
 HAL_TIM_OC_Start_IT(&htim14,TIM_CHANNEL_1);
 
 //HAL_HalfDuplex_EnableTransmitter(&huart1);
+HAL_UART_Receive_IT(&huart1,&RxArrTmp,1);
 HAL_UART_Transmit_DMA_my(&huart1,TxArr,strlen(TxArr));
 //UART_Receive_IT(&huart1);
 //HAL_UART_Receive_IT(&huart1,&RxArrTmp,1);
@@ -429,6 +449,8 @@ while(0)
 	hheat.pCommPoll();
 }
 
+HAL_Delay(1000);
+POWER_EN;
 	//HEAT_Init(&hheat);
 	//start  测试函数
 	HEAT_Poll(&hheat);
@@ -669,7 +691,7 @@ void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 19200;////115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -711,6 +733,7 @@ void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __GPIOA_CLK_ENABLE();
   __GPIOB_CLK_ENABLE();
+	__GPIOF_CLK_ENABLE();
 
   /*Configure GPIO pin : PA5 */
   GPIO_InitStruct.Pin = GPIO_PIN_5;
@@ -718,6 +741,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	
+	GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+	HAL_GPIO_WritePin(GPIOF,GPIO_PIN_1,GPIO_PIN_RESET);
 
 }
 

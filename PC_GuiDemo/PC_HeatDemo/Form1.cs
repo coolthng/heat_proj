@@ -40,7 +40,7 @@ namespace PC_HeatDemo
                 ComPort.Items.Add(item);
                 //groupBox1.Enabled = true;
                 ComPort.SelectedIndex = 0;
-                comboBox2.SelectedIndex = 6;
+                comboBox2.SelectedIndex = 3;
                 comboBox3.SelectedIndex = 3;
                 comboBox4.SelectedIndex = 0;
                 comboBox5.SelectedIndex = 0;

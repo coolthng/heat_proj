@@ -362,11 +362,12 @@ ARM Macro Assembler    Page 6
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interw
 ork --depend="oileheat5 configuration/\startup_stm32f030x6.d" -o"oileheat5 conf
 iguration/\startup_stm32f030x6.o" -II:\STM32CubeProj\my_heat\heat_proj\OileHeat
-5\MDK-ARM\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include -IC:\Keil_v5\
-ARM\PACK\Keil\STM32F0xx_DFP\1.5.0\Device\Include --predefine="__MICROLIB SETA 1
-" --predefine="__UVISION_VERSION SETA 517" --predefine="_RTE_ SETA 1" --predefi
-ne="STM32F030x6 SETA 1" --list=startup_stm32f030x6.lst ../Drivers/CMSIS/Device/
-ST/STM32F0xx/Source/Templates/arm/startup_stm32f030x6.s
+5\MDK-ARM\RTE -Id:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include -Id:\Keil_v5\
+ARM\PACK\Keil\STM32F0xx_DFP\2.0.0\Drivers\CMSIS\Device\ST\STM32F0xx\Include -Id
+:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\2.0.0\Device\Include --predefine="__MICRO
+LIB SETA 1" --predefine="__UVISION_VERSION SETA 517" --predefine="_RTE_ SETA 1"
+ --predefine="STM32F030x6 SETA 1" --list=startup_stm32f030x6.lst ../Drivers/CMS
+IS/Device/ST/STM32F0xx/Source/Templates/arm/startup_stm32f030x6.s
 
 
 

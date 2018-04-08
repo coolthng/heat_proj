@@ -3,6 +3,8 @@
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 #else
 #include "stm32f0xx_hal.h"
+
+extern uint8_t RS485_TxFlag;
 #endif
 
 #if  (PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
@@ -141,12 +143,13 @@ void CommPoll()
 			{
 			case 'a':////扫描更新显示状态
 				static HEAT_DIS heatDis;
+			static uint16_t count_test=0;
 				heatDis.st.comnd = 'a';
 				heatDis.st.HsVoltage = hheat.TargetHsVolt / 10;
 				heatDis.st.AlarmState = hheat.AlarmState;
 				heatDis.st.StateMachine = hheat.StateMachine;
 				heatDis.st.StateRunLevel = hheat.StateRunLevel;
-				heatDis.st.StateMachineRun_s= hheat.hSysTime.StateMachineRun_s;
+				heatDis.st.StateMachineRun_s=hheat.hSysTime.StateMachineRun_s;// count_test++;//
 				heatDis.st.JinKouTemp= hheat.JinKouTemp;
 				heatDis.st.CurrentPrm= hheat.CurrentPrm;// hheat.Prm;
 				heatDis.st.KeTiTemp= hheat.KeTiTemp;
@@ -188,7 +191,7 @@ void CommPoll()
 				TxArr[0]='s';
 				TxArr[1]=0x0d;
 				TxArr[2]=0x0a;
-			TxArr[3]=NULL;
+				TxArr[3]=NULL;
 			
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出
@@ -218,32 +221,7 @@ void CommPoll()
 #endif
 				
 				break;
-			case 's':
-#if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//ReadFile(hCom, MB_RxBuf, 20, &rCount, NULL);//再读20
-#endif
-				/*hheat.hSensor.SenTestPower = *(int16_t*)(RxArr + 2);
-				hheat.hSensor.SenTestDianWeiQi = *(int16_t*)(RxArr+2 + 2);
-				hheat.hSensor.SenTestKeTi = *(int16_t*)(RxArr+2 + 4);
-				hheat.hSensor.SenTestJinKou = *(int16_t*)(RxArr+2 +6);
-				hheat.hSensor.SenTestChuKou = *(int16_t*)(RxArr+2 + 8);
-				hheat.hSensor.SenTestHuoSaiFb = *(int16_t*)(RxArr+2 + 10);
-				hheat.hSensor.SenTestYouBengFb = *(int16_t*)(RxArr + 2 + 12);*/
-				hheat.TargetPrm = *(uint16_t *)(RxArr + 2 + 14);//测试
-				TxArr[0] = 'o';
-				TxArr[1] = 'k';
-				TxArr[2] = NULL;
 
-#if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
-				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出
-				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//发出
-#else
-				RS485_TX;
-				HAL_Delay(5);
-				HAL_UART_Transmit_DMA_my(&huart1, TxArr, 2);
-
-#endif
-				break;
 			case 'p':
 				//RxArr[]//接收到的数组
 				static HeatParm myHeatParmRx;
@@ -256,7 +234,7 @@ void CommPoll()
 					//HeatParmArr[parmPostion + i] = RxArr[4 + 2 * i] | RxArr[4 + 1 + 2 * i]<<8;
 					myHeatParmRx.un_parm[parmPostion + i] = RxArr[4 + 2 * i] | RxArr[4 + 1 + 2 * i] << 8;
 				}
-				TxArr[0] = 'p';
+				TxArr[0] = 'q';//注意替换 p 替换成q
 				TxArr[1] = RxArr[1];
 				TxArr[2] = RxArr[2];
 				TxArr[3] = RxArr[3];
@@ -283,17 +261,17 @@ void CommPoll()
 			case 'k':
 				//hheat.hSensor.SenTestDianWeiQi= RxArr[1];
 				hheat.hKey.KeyStateSet(RxArr[2]);
-			TxArr[0]='o';
-			TxArr[1]='k';
-			TxArr[2]=NULL;
+				TxArr[0]='s';
+				TxArr[1]=0x0d;
+				TxArr[2]=0x0a;
 			
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出
-				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//发出
+				bWriteStat = WriteFile(hCom, TxArr, 3, &wCount, NULL);//发出
 #else
 					RS485_TX;
 			HAL_Delay(5);
-				HAL_UART_Transmit_DMA_my(&huart1,TxArr,2);
+				HAL_UART_Transmit_DMA_my(&huart1,TxArr,3);
 				
 #endif
 				break;
@@ -324,11 +302,11 @@ void CommPoll()
 			
 #if(PLATE_FORM_SIM==PLATE_FORM_SIM_PC)
 				//bWriteStat = WriteFile(hCom, MB_TxBuf, TxLength + 5, &wCount, NULL);//发出
-				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//发出
+//				bWriteStat = WriteFile(hCom, TxArr, strlen(TxArr), &wCount, NULL);//发出
 #else
-					RS485_TX;
-			HAL_Delay(5);
-				HAL_UART_Transmit_DMA_my(&huart1,TxArr,6);
+//				RS485_TX;
+//				HAL_Delay(5);
+//				HAL_UART_Transmit_DMA_my(&huart1,TxArr,6);
 				
 #endif
 

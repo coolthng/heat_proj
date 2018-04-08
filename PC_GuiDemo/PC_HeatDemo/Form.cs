@@ -231,60 +231,11 @@ namespace PC_HeatDemo
                         }
                         if (sp.IsOpen)
                         {
+                            Thread.Sleep(100);
                             sp.Write(mySetByteArry, 0, usart_tx_length);
                         }
                         myCommState = CommState.STATE_RX;//进入到接受
-#if false
-                        //start 填充发送数据
-                        if (stateSendFlag)//有按键使能
-                        {
-                            mySetByteArry[0] = (byte)'k';// 0x01;
-                            mySetByteArry[1] = levelState;// 0x06;
-                            mySetByteArry[2] = keyState;// 0x00;
-                            mySetByteArry[3] = 0x0d;// 0x00;
-                            mySetByteArry[4] = 0x0a;// levelState;
-                        }
-                        else if (stateSetParmFlag)//设置参数
-                        {
-                            mySetByteArry[0] = (byte)'s';
-                            mySetByteArry[1] = 0x10;
-                            for (int i = 0; i < 8; i++)
-                            {
-                                mySetByteArry[2 + 2 * i] = (byte)(SetStateParmArry[i] % 256);
-                                mySetByteArry[2 + 2 * i + 1] = (byte)(SetStateParmArry[i] / 256);
-                            }
-                            mySetByteArry[18] = 0x0d;// (byte)(res % 256);
-                            mySetByteArry[19] = 0x0a;// (byte)(res / 256);
-                        }
-                        else if (stateUpParmFlag)//配置初始化参数
-                        {
-                            mySetByteArry[0] = (byte)'p';
-                            int txLength = SetUpParmArry[0] % 16;
-                            mySetByteArry[1] = (byte)txLength;
-                            for (int i = 0; i <= txLength; i++)
-                            {
-                                mySetByteArry[2 + 2 * i] = (byte)(SetUpParmArry[i] % 256);
-                                mySetByteArry[2 + 2 * i + 1] = (byte)(SetUpParmArry[i] / 256);
-                            }
-                            mySetByteArry[4 + 2 * txLength] = 0x0d;// (byte)(res % 256);
-                            mySetByteArry[5 + 2 * txLength] = 0x0a;// (byte)(res / 256);
 
-                        }
-                        else//获取常规状态
-                        {
-                            stateSetCount = 0;
-                            mySetByteArry[0] = 0x61;//'a';//0x01;
-                            mySetByteArry[1] = 0x0d;
-                            mySetByteArry[2] = 0x0a;
-                            if (sp.IsOpen)
-                            {
-                                sp.Write(mySetByteArry, 0, 3);
-                            }
-
-                        }
-
-                        //end  填充发送数据
-#endif
                         break;
                     case CommState.STATE_RX:
                         int SDataLength = 0;
@@ -319,6 +270,19 @@ namespace PC_HeatDemo
                         }
                         if (RxArr[(RxArrPtrTail + RX_BUFFER_LENGTH - 2) % RX_BUFFER_LENGTH] == 0x0d && RxArr[(RxArrPtrTail + RX_BUFFER_LENGTH - 1) % RX_BUFFER_LENGTH] == 0x0a)
                         {
+                            int j = 0;
+                            while(j < usart_tx_length)
+                            {
+                                if (RxArr[(RxArrPtrHeader + j)% RX_BUFFER_LENGTH] == mySetByteArry[j++])
+                                    continue;
+                                else
+                                    break;
+                            }
+                            if (j == usart_tx_length)
+                            {
+                                RxArrPtrHeader += usart_tx_length;
+                                RxArrPtrHeader %= RX_BUFFER_LENGTH;
+                            }
                             int i = 0;
                             int s_header = RxArrPtrHeader;
                             for (; i < (RxArrPtrTail + RX_BUFFER_LENGTH - s_header) % RX_BUFFER_LENGTH; i++)
@@ -355,55 +319,7 @@ namespace PC_HeatDemo
                         break;
                 }
             }
-#if false
-            while (true)
-            {
-                int SDataLength = this.sp.BytesToRead;
-                while (SDataLength > RX_BUFFER_LENGTH)
-                {
-                    byte[] temp = new byte[RX_BUFFER_LENGTH];
-                    sp.Read(temp, 0, RX_BUFFER_LENGTH);
-                    SDataLength = this.sp.BytesToRead;
-                }
-                if ((RxArrPtrTail + SDataLength) > RX_BUFFER_LENGTH)
-                {
-                    sp.Read(RxArr, RxArrPtrTail, RX_BUFFER_LENGTH - RxArrPtrTail);
-                    sp.Read(RxArr, 0, SDataLength + RxArrPtrTail - RX_BUFFER_LENGTH);
-                }
-                else
-                {
-                    sp.Read(RxArr, RxArrPtrTail, SDataLength);
-                }
-                RxArrPtrTail += SDataLength;
 
-                //RxArr[RxArrPtrTail++] = ArrTmp[j];//(byte)(SDateTemp);
-                if (RxArrPtrTail >= RX_BUFFER_LENGTH)
-                {
-                    RxArrPtrTail = RxArrPtrTail % RX_BUFFER_LENGTH;//循环指针
-                }
-                if (RxArr[(RxArrPtrTail + RX_BUFFER_LENGTH - 2) % RX_BUFFER_LENGTH] == 0x0d && RxArr[(RxArrPtrTail + RX_BUFFER_LENGTH - 1) % RX_BUFFER_LENGTH] == 0x0a)
-                {
-                    int i = 0;
-                    int s_header = RxArrPtrHeader;
-                    for (; i < (RxArrPtrTail + RX_BUFFER_LENGTH - s_header) % RX_BUFFER_LENGTH; i++)
-                    {
-                        UpdataArr[i] = RxArr[RxArrPtrHeader++];
-                        if (RxArrPtrHeader >= RX_BUFFER_LENGTH)
-                        {
-                            RxArrPtrHeader = 0;
-                        }
-                    }
-                    UpdataArr[0] = UpdataArr[0];
-                    // DoUpdate();
-                    this.Invoke(myGuiUpdata);
-                }
-
-                Thread.Sleep(5);
-                Console.WriteLine("字符" + ttttttt_count++);
-                //this.Invoke(myGuiUpdata);
-                // this.label_Version.Text = ttttttt_count.ToString();
-            }
-#endif
         }
 
 

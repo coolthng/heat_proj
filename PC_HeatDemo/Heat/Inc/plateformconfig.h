@@ -1,4 +1,4 @@
-﻿#ifndef  __PLATE_FORM_CONFIG_
+#ifndef  __PLATE_FORM_CONFIG_
 #define  __PLATE_FORM_CONFIG_
 
 #define DEBUG_TEST_PC  
@@ -44,7 +44,22 @@ typedef unsigned long       DWORD;
 typedef int                 BOOL;
 typedef unsigned char       BYTE;
 typedef unsigned short      WORD;
+//#define RS485_TX HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET)
+//#define RS485_RX HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_RESET)
 
-#define RS485_TX HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET)
-#define RS485_RX HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_RESET)
+
+//HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET
+//HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_RESET)
+#define RS485_TX //__HAL_UART_DISABLE_IT(&huart1, UART_IT_RXNE); \
+RS485_TxFlag=0
+#define RS485_RX //__HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE); \
+RS485_TxFlag=1
+
+
+#define POWER_EN      HAL_GPIO_WritePin(GPIOF,GPIO_PIN_1,GPIO_PIN_SET)
+#define POWER_DIS     HAL_GPIO_WritePin(GPIOF,GPIO_PIN_1,GPIO_PIN_RESET)
+
+
+
 #endif
+
