@@ -104,7 +104,7 @@ extern "C"
 #define NPI_UART_INT_ENABLE            TRUE
 
 #if !defined( NPI_UART_BR )
-#define NPI_UART_BR                    HAL_UART_BR_115200
+#define NPI_UART_BR                 HAL_UART_BR_19200  //改2线制通信     HAL_UART_BR_115200
 #endif // !NPI_UART_BR
 
 /*******************************************************************************
