@@ -404,12 +404,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-	
-	while(0)
-	{
-	
-	}
-  MX_DMA_Init();
+	MX_DMA_Init();
   MX_TIM3_Init();
   MX_TIM14_Init();
   MX_TIM16_Init();
@@ -450,6 +445,7 @@ while(0)
 }
 
 HAL_Delay(1000);
+
 POWER_EN;
 	//HEAT_Init(&hheat);
 	//start  ²âÊÔº¯Êý
@@ -462,7 +458,7 @@ POWER_EN;
 	
 	//end  ²âÊÔº¯Êý
 
-while(1)
+while(0)
 {
 
 }
@@ -475,7 +471,7 @@ uint16_t Proid_test=1000;
   while (1)
   {
 		//HAL_UART_Transmit(&huart1,"hello world99\n",15,100);
-		HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
+		//HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
 		
 //		YouBengL+=10;
 //		if(YouBengL>2000)
@@ -498,9 +494,10 @@ uint16_t Proid_test=1000;
 //		
 		FengShanH+=10;
 		if(FengShanH>2000)
-			FengShanH=500;
-		
-		htim3.Instance->CCR2=FengShanH;
+			FengShanH=0;
+		//htim17.Instance->CCR1 = FengShanH;
+		HAL_Delay(100);
+		//htim3.Instance->CCR2=FengShanH;
 		//	htim14.Init.Period = Proid_test;
 		//htim14.Instance->ARR=Proid_test;
 			//HAL_TIM_Base_Init(&htim14);
@@ -677,7 +674,7 @@ void MX_TIM17_Init(void)
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.Pulse = 500;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;//TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
